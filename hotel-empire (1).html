@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hôtel Empire</title>
+<style>
+  :root{
+    --bg:#F4F5F7;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF0F3;
+    --ink:#151821;
+    --ink-soft:#6B7280;
+    --ink-faint:#9CA3AF;
+    --line:#E5E7EB;
+    --primary:#0E7C7B;
+    --primary-dark:#0A5F5E;
+    --primary-light:#E3F3F2;
+    --accent:#F97362;
+    --accent-light:#FDEAE6;
+    --warn:#D97706;
+    --warn-light:#FEF3E2;
+    --danger:#DC2626;
+    --danger-light:#FDECEC;
+    --ok:#16A34A;
+    --ok-light:#E9F8EE;
+    --neutral:#64748B;
+    --neutral-light:#EEF1F5;
+    --sidebar:#12141C;
+    --sidebar-soft:#8A8FA3;
+    --radius:10px;
+    --radius-sm:6px;
+    --shadow:0 1px 2px rgba(16,24,32,0.04), 0 4px 14px rgba(16,24,32,0.06);
+    --shadow-lg:0 10px 30px rgba(16,24,32,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family: -apple-system, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size:14px;
+    line-height:1.45;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family: inherit;
+    margin:0 0 4px 0;
+    font-weight:650;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+  .sr-only{position:absolute;left:-9999px;}
+  ::-webkit-scrollbar{width:9px; height:9px;}
+  ::-webkit-scrollbar-thumb{background:#D1D5DB; border-radius:10px;}
+
+  #app-shell{ display:flex; min-height:100vh; align-items:stretch; }
+
+  /* ===== MOBILE TOPBAR & DRAWER (masqués sur desktop) ===== */
+  #mobile-topbar{ display:none; }
+  #sidebar-backdrop{ display:none; }
+  #sidebar-close-btn{ display:none; }
+
+  #sidebar{
+    width:238px; min-width:238px;
+    background:var(--sidebar);
+    color:#fff;
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  #brand{ display:flex; align-items:center; gap:9px; padding:20px 18px 14px; position:relative; }
+  #brand .logo{ width:32px; height:32px; border-radius:9px; background:linear-gradient(135deg,var(--primary),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;}
+  #brand .txt h1{ font-size:15.5px; color:#fff; margin:0; letter-spacing:-0.01em;}
+  #brand .txt .tag{ font-size:10px; color:var(--sidebar-soft); letter-spacing:0.6px; text-transform:uppercase; }
+
+  #hq-stats{ display:flex; flex-direction:column; gap:2px; padding:10px 18px 16px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;}
+  #hq-stats .stat{ display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; }
+  #hq-stats .stat b{ font-size:15px; color:#fff; font-weight:650; }
+  #hq-stats .stat span{ font-size:11px; color:var(--sidebar-soft); }
+
+  #nav{ display:flex; flex-direction:column; padding:2px 10px; gap:2px; }
+  #nav button{
+    background:none; border:none; color:#C6C9D6; padding:9px 12px;
+    font-size:13px; cursor:pointer; text-align:left; border-radius:8px;
+    font-family:inherit; font-weight:500; transition:background .12s, color .12s;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  #nav button:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  #nav button.active{ background:var(--primary); color:#fff; }
+  #nav button .pill{ background:var(--accent); color:#fff; border-radius:20px; font-size:10px; padding:1px 6px; font-weight:700;}
+
+  #sidebar-actions{ padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
+  #sidebar-actions button{ width:100%; }
+
+  #hotel-tabs{ margin-top:auto; padding:12px 10px 16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:6px; }
+  #hotel-tabs .hotel-tabs-label{ font-size:10px; color:var(--sidebar-soft); letter-spacing:0.6px; text-transform:uppercase; padding:0 6px 4px; }
+  .hotel-tab{
+    background:rgba(255,255,255,0.04); border:1px solid transparent; border-radius:8px;
+    padding:8px 10px; cursor:pointer; font-size:12.5px; display:flex; gap:7px; align-items:center;
+    color:#D7DAE4; transition:background .12s;
+  }
+  .hotel-tab:hover{ background:rgba(255,255,255,0.08); }
+  .hotel-tab.active{ border-color:var(--primary); background:rgba(14,124,123,0.18); color:#fff; }
+  .hotel-tab .stars{ color:var(--accent); font-size:10.5px; letter-spacing:1px; }
+  .hotel-tab .name{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hotel-tab .warn{ color:var(--accent); font-weight:700; font-size:11px; }
+
+  #main-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  main{ padding: 22px 28px 60px; max-width:1240px; margin:0 auto; width:100%; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  .grid{ display:grid; gap:14px; }
+  .g2{ grid-template-columns: 1fr 1fr; }
+  .g3{ grid-template-columns: repeat(3,1fr); }
+  .g4{ grid-template-columns: repeat(4,1fr); }
+  @media(max-width:900px){ .g2,.g3,.g4{ grid-template-columns:1fr; } }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .card h3{ font-size:14px; font-weight:650; color:var(--ink); border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:baseline;}
+  .card h3 .sub{font-size:11.5px; color:var(--ink-faint); font-weight:500;}
+
+  .kpi{ display:flex; justify-content:space-between; align-items:baseline; padding:7px 0; font-size:13px; border-bottom:1px solid var(--surface-alt);}
+  .kpi:last-child{border-bottom:none;}
+  .kpi b{ font-size:15px; font-weight:650; }
+  .pos{color:var(--ok);}
+  .neg{color:var(--danger);}
+
+  button.btn{
+    background: var(--ink); color:#fff; border:none; padding:9px 15px;
+    border-radius:8px; cursor:pointer; font-size:12.5px; font-weight:600; letter-spacing:0.1px;
+    transition:transform .06s, background .12s, opacity .12s;
+    font-family:inherit;
+  }
+  button.btn:hover{ background:#2B2E3A; }
+  button.btn:active{ transform:scale(0.97); }
+  button.btn.gold{ background:var(--primary); color:#fff; }
+  button.btn.gold:hover{ background:var(--primary-dark); }
+  button.btn.brick{ background:var(--danger); color:#fff;}
+  button.btn.brick:hover{ background:#B91C1C; }
+  button.btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--line); }
+  button.btn.ghost:hover{ background:var(--surface-alt); }
+  button.btn:disabled{ opacity:0.4; cursor:not-allowed; transform:none;}
+  button.btn.small{ padding:5px 10px; font-size:11.5px; border-radius:7px;}
+  button.btn.sidebar{ background:rgba(255,255,255,0.06); color:#D7DAE4; text-align:left; }
+  button.btn.sidebar:hover{ background:rgba(255,255,255,0.12); color:#fff; }
+
+  #next-day-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--surface); color:var(--ink); padding:14px 18px; border-radius:var(--radius);
+    margin-bottom:16px; box-shadow:var(--shadow); border:1px solid var(--line);
+    flex-wrap:wrap; gap:10px;
+  }
+  #next-day-bar .date{ font-size:16px; font-weight:650; color:var(--ink);}
+  #next-day-bar .season{ font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  #next-day-bar .ff-group{ display:flex; gap:8px; }
+
+  #rooms-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:10px; margin-top:4px;}
+  .room-door{
+    border-radius: var(--radius-sm);
+    padding:12px 12px 10px;
+    color:var(--ink);
+    position:relative;
+    min-height:104px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    cursor:default;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:4px solid var(--neutral);
+  }
+  .room-door .num{ font-size:19px; font-weight:700; }
+  .room-door .type{ font-size:10.5px; color:var(--ink-soft); letter-spacing:0.2px;}
+  .room-door .status{ font-size:10.5px; font-weight:700; letter-spacing:0.2px; display:inline-flex; align-items:center; gap:5px;}
+  .room-door .status::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; display:inline-block; }
+  .room-door .price{ font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
+  .room-door.clean{ border-left-color:var(--ok); }
+  .room-door.clean .status{ color:var(--ok); }
+  .room-door.occupied{ border-left-color:#2563EB; }
+  .room-door.occupied .status{ color:#2563EB; }
+  .room-door.dirty{ border-left-color:var(--warn); }
+  .room-door.dirty .status{ color:var(--warn); }
+  .room-door.broken{ border-left-color:var(--danger); background:var(--danger-light); }
+  .room-door.broken .status{ color:var(--danger); }
+  .room-door.renovating{ border-left-color:var(--neutral); background:var(--neutral-light); }
+  .room-door.renovating .status{ color:var(--neutral); }
+  .room-door.building{ border-left-color:var(--primary); background:var(--primary-light); }
+  .room-door.building .status{ color:var(--primary-dark); }
+  .room-door .actions{ display:flex; gap:4px; margin-top:6px; }
+  .room-door .actions button{ flex:1; font-size:10px; padding:4px 2px; }
+
+  table.list{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.list th{ text-align:left; border-bottom:1px solid var(--line); padding:7px 6px; color:var(--ink-soft); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px;}
+  table.list td{ padding:8px 6px; border-bottom:1px solid var(--surface-alt); vertical-align:middle;}
+  table.list tr:last-child td{ border-bottom:none;}
+  table.list tr:hover td{ background:var(--surface-alt); }
+
+  .badge{ display:inline-block; padding:3px 8px; border-radius:20px; font-size:10.5px; font-weight:700;}
+  .badge.ok{ background:var(--ok-light); color:var(--ok);}
+  .badge.warn{ background:var(--warn-light); color:var(--warn);}
+  .badge.bad{ background:var(--danger-light); color:var(--danger);}
+
+  input[type=number], select, input[type=text]{
+    padding:6px 8px; border:1px solid var(--line); border-radius:7px; font-size:12.5px; background:#fff;
+    font-family:inherit; color:var(--ink);
+  }
+  input:focus, select:focus{ outline:2px solid var(--primary-light); border-color:var(--primary); }
+
+  .empty-state{ text-align:center; padding:34px 10px; color:var(--ink-faint);}
+
+  #log{ max-height:220px; overflow-y:auto; font-size:12px; }
+  #log div{ padding:6px 0; border-bottom:1px solid var(--surface-alt);}
+  #log div:last-child{border-bottom:none;}
+  #log .d{ color:var(--primary); font-weight:700; margin-right:7px; font-size:11px;}
+
+  .amenity-card{ border:1px solid var(--line); border-radius:var(--radius); padding:14px; background:#fff; }
+  .amenity-card.active{ border-color:var(--primary); box-shadow:0 0 0 1px var(--primary) inset; background:var(--primary-light); }
+  .amenity-card h4{ color:var(--ink); font-size:13.5px; font-weight:650;}
+  .amenity-card .lvl{ color:var(--primary); font-size:11.5px; font-weight:600;}
+
+  #world-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(226px,1fr)); gap:14px; }
+  .city-card{ background:#fff; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);}
+  .city-card .hero{ background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; padding:12px 14px;}
+  .city-card .hero .country{ font-size:10px; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.75);}
+  .city-card .hero h4{ color:#fff; font-size:16px;}
+  .city-card .body{ padding:12px 14px; font-size:12px;}
+  .city-card .body .kpi{ font-size:12px; }
+  .city-card .owned{ background:var(--surface-alt); color:var(--ink-soft); text-align:center; padding:8px; font-size:11px; letter-spacing:0.5px; font-weight:600;}
+
+  .modal-bg{ position:fixed; inset:0; background:rgba(15,17,23,0.5); display:flex; align-items:center; justify-content:center; z-index:80; padding:16px;}
+  .modal{ background:#fff; border-radius:var(--radius); padding:22px; max-width:460px; width:100%; box-shadow:var(--shadow-lg); border:1px solid var(--line); max-height:86vh; overflow-y:auto;}
+  .modal h3{ color:var(--ink); border:none; padding:0; margin-bottom:12px;}
+  .modal .row{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
+
+  .toast-wrap{ position:fixed; top:16px; right:16px; z-index:65; display:flex; flex-direction:column; gap:8px; }
+  .toast{ background:var(--ink); color:#fff; padding:11px 16px; border-radius:9px; border-left:3px solid var(--primary); box-shadow:var(--shadow-lg); font-size:12.5px; max-width:300px; animation:slidein 0.25s ease-out;}
+  .toast.bad{ border-left-color:var(--danger); }
+  .toast.good{ border-left-color:var(--ok); }
+  @keyframes slidein{ from{ transform:translateX(20px); opacity:0;} to{transform:translateX(0); opacity:1;} }
+
+  .staff-avatar{ width:27px; height:27px; border-radius:50%; background:var(--primary-light); color:var(--primary-dark); display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; margin-right:7px;}
+
+  footer{ text-align:center; padding:24px; font-size:11px; color:var(--ink-faint);}
+
+  /* ===== nouveaux composants ===== */
+  .stars-static{ color:var(--accent); letter-spacing:1px; font-size:12px;}
+  .review-card{ border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:8px; background:var(--surface-alt);}
+  .review-card:last-child{ margin-bottom:0; }
+  .review-card .head{ display:flex; justify-content:space-between; font-size:12px; font-weight:650; margin-bottom:3px;}
+  .review-card .cats{ font-size:10.5px; color:var(--ink-soft); margin-bottom:4px;}
+  .review-card .comment{ font-size:12.5px; color:var(--ink); }
+
+  .morale-bar{ height:6px; border-radius:4px; background:var(--surface-alt); overflow:hidden; width:70px; display:inline-block; vertical-align:middle;}
+  .morale-bar > div{ height:100%; }
+
+  .mission-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--surface-alt); font-size:12.5px;}
+  .mission-row:last-child{ border-bottom:none;}
+  .mission-row .check{ width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0;}
+  .mission-row .check.done{ background:var(--ok-light); color:var(--ok);}
+  .mission-row .check.pending{ background:var(--surface-alt); color:var(--ink-faint); border:1px solid var(--line);}
+  .mission-row .reward{ margin-left:auto; font-weight:650; color:var(--primary); font-size:11.5px; white-space:nowrap;}
+
+  .event-banner{ display:flex; gap:10px; align-items:flex-start; padding:9px 12px; border-radius:var(--radius-sm); background:var(--accent-light); border:1px solid #F6C9BE; margin-bottom:8px; font-size:12.5px;}
+  .event-banner .ic{ font-size:16px; }
+  .event-banner:last-child{ margin-bottom:0; }
+
+  .loan-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--surface-alt); font-size:12.5px;}
+  .loan-row:last-child{ border-bottom:none; }
+
+  #sparkline-wrap{ width:100%; overflow:hidden; }
+
+  #calendar-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:6px; }
+  .cal-cell{ border-radius:7px; padding:7px 4px; text-align:center; font-size:10.5px; min-height:52px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--line); background:var(--surface-alt); }
+  .cal-cell .d{ font-weight:700; color:var(--ink-soft); }
+  .cal-cell.today{ border-color:var(--primary); box-shadow:0 0 0 1px var(--primary) inset; }
+  .cal-cell.future{ background:#fff; }
+  .cal-cell .occ{ font-weight:700; font-size:11.5px; }
+  .cal-cell .evt{ font-size:13px; }
+  .cal-legend{ display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--ink-soft); margin-top:10px; }
+  .cal-legend .sw{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:middle; }
+
+  .msg-item{ border:1px solid var(--line); border-radius:var(--radius-sm); padding:11px 13px; margin-bottom:8px; background:var(--surface); }
+  .msg-item:last-child{ margin-bottom:0; }
+  .msg-item.nouveau{ border-left:3px solid var(--accent); }
+  .msg-item.traite{ opacity:0.6; }
+  .msg-item .head{ display:flex; justify-content:space-between; align-items:baseline; font-size:12.5px; font-weight:650; margin-bottom:3px;}
+  .msg-item .meta{ font-size:10.5px; color:var(--ink-faint); margin-bottom:5px;}
+  .msg-item .body{ font-size:12.5px; color:var(--ink); margin-bottom:8px;}
+
+  @media(max-width:760px){
+    /* Barre compacte fixe en haut, toujours visible */
+    #mobile-topbar{
+      display:flex; align-items:center; gap:10px;
+      position:sticky; top:0; z-index:40;
+      background:var(--sidebar); color:#fff;
+      padding:10px 14px; box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    }
+    #hamburger-btn{
+      background:rgba(255,255,255,0.08); border:none; color:#fff; font-size:18px;
+      width:36px; height:36px; border-radius:8px; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #mobile-brand{ font-size:13.5px; font-weight:650; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #mobile-cash{ font-size:13px; font-weight:700; color:var(--primary-light); white-space:nowrap; }
+
+    #app-shell{ flex-direction:column; }
+
+    /* Le menu latéral devient un tiroir plein écran qui glisse depuis la gauche */
+    #sidebar{
+      position:fixed; top:0; left:0; height:100dvh; width:84%; max-width:300px;
+      transform:translateX(-100%); transition:transform .22s ease-out;
+      z-index:60; box-shadow:2px 0 18px rgba(0,0,0,0.35);
+    }
+    #sidebar.mobile-open{ transform:translateX(0); }
+    #sidebar-backdrop{
+      display:block; position:fixed; inset:0; background:rgba(10,12,18,0.5);
+      z-index:55; opacity:0; pointer-events:none; transition:opacity .2s ease-out;
+    }
+    #sidebar-backdrop.visible{ opacity:1; pointer-events:auto; }
+    #sidebar-close-btn{
+      display:flex; align-items:center; justify-content:center;
+      position:absolute; right:12px; top:16px; width:30px; height:30px;
+      background:rgba(255,255,255,0.08); border:none; border-radius:8px; color:#fff; font-size:15px; cursor:pointer;
+    }
+
+    main{ padding:14px; }
+    h3{ font-size:14.5px; }
+    #next-day-bar{ padding:12px 14px; flex-direction:column; align-items:stretch; gap:10px; }
+    #next-day-bar .ff-group{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    #next-day-bar .ff-group button.gold{ grid-column:1 / -1; }
+
+    /* Tableaux : on autorise le défilement horizontal plutôt que de casser la mise en page */
+    .card{ overflow-x:auto; padding:13px 14px; }
+    table.list{ min-width:480px; }
+
+    /* Grilles d'équipements/villes : une seule colonne, cartes plus compactes */
+    .grid.g3, .grid.g4{ grid-template-columns:1fr; }
+    #rooms-grid{ grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
+    #world-grid{ grid-template-columns:1fr; }
+
+    /* Calendrier : cellules plus compactes */
+    .cal-cell{ min-height:42px; padding:5px 2px; font-size:9.5px; }
+    .cal-cell .occ{ font-size:10.5px; }
+
+    button.btn{ min-height:38px; }
+    button.btn.small{ min-height:32px; }
+    .modal{ padding:18px; }
+    .modal .row{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div id="mobile-topbar">
+  <button id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+  <div id="mobile-brand">🏨 <span id="mobile-hotel-name"></span></div>
+  <div id="mobile-cash"></div>
+</div>
+<div id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+<div id="app-shell">
+<aside id="sidebar">
+  <div id="brand">
+    <div class="logo">🏨</div>
+    <div class="txt">
+      <h1>Hôtel Empire</h1>
+      <span class="tag">Groupe hôtelier</span>
+    </div>
+    <button id="sidebar-close-btn" onclick="closeSidebar()" aria-label="Fermer le menu">✕</button>
+  </div>
+  <div id="hq-stats"></div>
+  <div id="nav"></div>
+  <div id="sidebar-actions">
+    <button class="btn sidebar small" onclick="openTutorial()">❓ Aide / Tutoriel</button>
+    <button class="btn sidebar small" onclick="openMissionsModal()">🎯 Objectifs</button>
+    <button class="btn sidebar small" onclick="exportSave()">💾 Sauvegarder</button>
+    <button class="btn sidebar small" onclick="document.getElementById('import-file').click()">📂 Charger</button>
+    <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importSave(this.files[0])">
+    <button class="btn sidebar small" onclick="confirmNewGame()">🔄 Nouvelle partie</button>
+  </div>
+  <div id="hotel-tabs"></div>
+</aside>
+
+<div id="main-col">
+<main>
+  <div id="next-day-bar">
+    <div>
+      <div class="date" id="date-label"></div>
+      <div class="season" id="season-label"></div>
+    </div>
+    <div class="ff-group">
+      <button class="btn ghost small" onclick="fastForward(7)">Avancer 7 jours ▶▶</button>
+      <button class="btn ghost small" onclick="fastForward(30)">Avancer 30 jours ▶▶▶</button>
+      <button class="btn gold" onclick="nextDay()">Jour suivant ▶</button>
+    </div>
+  </div>
+
+  <div class="view active" id="view-dashboard"></div>
+  <div class="view" id="view-rooms"></div>
+  <div class="view" id="view-staff"></div>
+  <div class="view" id="view-upgrades"></div>
+  <div class="view" id="view-finance"></div>
+  <div class="view" id="view-world"></div>
+  <div class="view" id="view-ranking"></div>
+  <div class="view" id="view-marketing"></div>
+  <div class="view" id="view-calendar"></div>
+  <div class="view" id="view-messages"></div>
+</main>
+
+<footer id="app-footer">Hôtel Empire — jeu de gestion.</footer>
+</div>
+</div>
+
+<div id="toast-wrap" class="toast-wrap"></div>
+<div id="modal-root"></div>
+
+<script>
+/* ============================================================
+   DONNÉES DE RÉFÉRENCE
+   ============================================================ */
+const ROOM_TYPES = {
+  standard:  { label:"Standard",   basePrice:55,  baseCap:2 },
+  superieure:{ label:"Supérieure", basePrice:85,  baseCap:2 },
+  suite:     { label:"Suite",      basePrice:150, baseCap:4 },
+};
+const QUALITY_LEVELS = [
+  { label:"Vétuste",  mult:0.7,  breakChance:0.07 },
+  { label:"Correcte", mult:1.0,  breakChance:0.035 },
+  { label:"Rénovée",  mult:1.35, breakChance:0.018 },
+  { label:"Luxe",     mult:1.8,  breakChance:0.007 },
+];
+const RENOVATION_COST = [0, 900, 1600, 2800];
+const ROOM_BUILD_COST = { standard: 2500, superieure: 4200, suite: 7500 };
+const ROOM_BUILD_DAYS = 3;
+const MAX_ROOMS_PER_HOTEL = 40;
+const STAFF_ROLES = {
+  reception:  { label:"Réceptionniste", icon:"R", salary:70,  desc:"Améliore la conversion des réservations et la réputation." },
+  femme:      { label:"Femme/valet de chambre", icon:"F", salary:60, desc:"Nettoie les chambres sales plus vite." },
+  technicien: { label:"Technicien",     icon:"T", salary:80,  desc:"Répare les pannes automatiquement, moins cher." },
+  manager:    { label:"Manager",        icon:"M", salary:120, desc:"Requis pour gérer un hôtel à distance sans pénalité." },
+  directeur:  { label:"Directeur d'établissement", icon:"D", salary:220, desc:"Optimise l'ensemble de l'hôtel : moins de pannes, meilleure réputation, tarifs mieux ajustés." },
+};
+const AMENITIES = {
+  piscine:     { label:"Piscine",              icon:"🏊", cost:12000, upkeep:35, repBonus:8,  priceBonus:0.08,  category:"bienetre" },
+  sport:       { label:"Salle de sport",       icon:"🏋️", cost:6000,  upkeep:15, repBonus:4,  priceBonus:0.04,  category:"bienetre" },
+  restaurant:  { label:"Restaurant",           icon:"🍽️", cost:9000,  upkeep:25, repBonus:6,  priceBonus:0.06,  category:"restauration" },
+  spa:         { label:"Spa & bien-être",      icon:"💆", cost:15000, upkeep:40, repBonus:9,  priceBonus:0.10,  category:"bienetre" },
+  sauna:       { label:"Sauna / Hammam",       icon:"🧖", cost:5000,  upkeep:14, repBonus:3,  priceBonus:0.03,  category:"bienetre" },
+  yoga:        { label:"Salle de yoga",        icon:"🧘", cost:2200,  upkeep:6,  repBonus:2,  priceBonus:0.015, category:"bienetre" },
+  bar:         { label:"Bar / Rooftop",        icon:"🍸", cost:7000,  upkeep:22, repBonus:5,  priceBonus:0.08,  category:"restauration" },
+  roomService: { label:"Room service 24h/24",  icon:"🛎️", cost:4500,  upkeep:28, repBonus:6,  priceBonus:0.04,  category:"restauration" },
+  conference:  { label:"Salle de conférence",  icon:"💼", cost:11000, upkeep:24, repBonus:4,  priceBonus:0.05,  category:"affaires" },
+  kidsClub:    { label:"Club enfants",         icon:"🧸", cost:5000,  upkeep:16, repBonus:5,  priceBonus:0.02,  category:"famille" },
+  parking:     { label:"Parking voiturier",    icon:"🚗", cost:3000,  upkeep:8,  repBonus:2,  priceBonus:0.02,  category:"mobilite" },
+  evCharging:  { label:"Bornes électriques",   icon:"🔌", cost:2000,  upkeep:5,  repBonus:2,  priceBonus:0.015, category:"mobilite" },
+  shuttle:     { label:"Navette aéroport",     icon:"🚐", cost:6000,  upkeep:18, repBonus:4,  priceBonus:0.02,  category:"mobilite" },
+  concierge:   { label:"Conciergerie",         icon:"🎩", cost:20000, upkeep:55, repBonus:10, priceBonus:0.12,  category:"luxe" },
+  petFriendly: { label:"Espace pet-friendly",  icon:"🐾", cost:2000,  upkeep:5,  repBonus:3,  priceBonus:0.01,  category:"niche" },
+};
+const AMENITY_CATEGORIES = {
+  bienetre:     "Bien-être",
+  restauration: "Restauration",
+  affaires:     "Affaires",
+  famille:      "Famille",
+  mobilite:     "Mobilité",
+  luxe:         "Luxe",
+  niche:        "Niche",
+};
+const THEMES = {
+  bienetre:     { label:"Bien-être",   icon:"🧘", amenities:["spa","sauna","yoga"],           repBonus:6, priceBonus:0.05 },
+  restauration: { label:"Gastronomie", icon:"🍽️", amenities:["restaurant","bar","roomService"], repBonus:6, priceBonus:0.06 },
+  affaires:     { label:"Affaires",    icon:"💼", amenities:["conference","roomService","parking"], repBonus:5, priceBonus:0.05 },
+  famille:      { label:"Famille",     icon:"🧸", amenities:["kidsClub","piscine","petFriendly"], repBonus:5, priceBonus:0.04 },
+  luxe:         { label:"Luxe",        icon:"🎩", amenities:["concierge","spa","bar"],          repBonus:8, priceBonus:0.08 },
+};
+function isThemeActive(hotel, themeKey){
+  return THEMES[themeKey].amenities.every(a=> !!hotel.amenities[a]);
+}
+const AMENITY_MAX_LEVEL = 3;
+const AMENITY_LEVEL_LABELS = ["", "Niveau 1 — Standard", "Niveau 2 — Amélioré", "Niveau 3 — Premium"];
+const AMENITY_LEVEL_MULT = [0, 1, 1.5, 2.1];       // multiplicateur du bonus réputation/prix selon le niveau
+const AMENITY_UPKEEP_MULT = [0, 1, 1.25, 1.5];     // l'entretien augmente aussi, mais moins vite que le bonus
+const AMENITY_UPGRADE_COST_MULT = [null, null, 0.55, 0.85]; // coût pour passer au niveau 2 / niveau 3, en % du coût de construction initial
+function amenityLevel(hotel, key){ return hotel.amenities[key] || 0; }
+const CITIES = [
+  { id:"strasbourg", city:"Strasbourg", country:"France",       cost:0,      demand:1.0 },
+  { id:"lyon",       city:"Lyon",       country:"France",       cost:28000,  demand:1.05 },
+  { id:"paris",      city:"Paris",      country:"France",       cost:65000,  demand:1.35 },
+  { id:"londres",    city:"Londres",    country:"Royaume-Uni",  cost:95000,  demand:1.3 },
+  { id:"rome",       city:"Rome",       country:"Italie",       cost:80000,  demand:1.2 },
+  { id:"barcelone",  city:"Barcelone",  country:"Espagne",      cost:70000,  demand:1.15 },
+  { id:"newyork",    city:"New York",   country:"États-Unis",   cost:180000, demand:1.6 },
+  { id:"tokyo",      city:"Tokyo",      country:"Japon",        cost:210000, demand:1.55 },
+  { id:"dubai",      city:"Dubaï",      country:"É.A.U.",       cost:250000, demand:1.7 },
+];
+const SEASONS = ["Basse saison","Moyenne saison","Haute saison","Moyenne saison"];
+
+const CITY_EVENT_TYPES = [
+  { label:"Marché de Noël",        icon:"🎄", demandBonus:0.45, minDuration:10, maxDuration:24 },
+  { label:"Match de football",     icon:"⚽", demandBonus:0.35, minDuration:1,  maxDuration:2 },
+  { label:"Festival de musique",   icon:"🎵", demandBonus:0.40, minDuration:2,  maxDuration:4 },
+  { label:"Salon professionnel",   icon:"💼", demandBonus:0.30, minDuration:2,  maxDuration:3 },
+  { label:"Jour férié / pont",     icon:"🎉", demandBonus:0.20, minDuration:1,  maxDuration:2 },
+  { label:"Marathon international",icon:"🏃", demandBonus:0.25, minDuration:1,  maxDuration:1 },
+  { label:"Convention & congrès",  icon:"🎤", demandBonus:0.30, minDuration:2,  maxDuration:3 },
+];
+function ensureCityEvents(cityId){
+  if(!state.cityEvents[cityId]) state.cityEvents[cityId] = [];
+  const list = state.cityEvents[cityId];
+  const horizon = state.day + 45;
+  let lastEnd = list.length ? list[list.length-1].endDay : state.day - 1;
+  while(lastEnd < horizon){
+    const gap = 4 + Math.floor(Math.random()*10);
+    const start = lastEnd + gap;
+    const type = CITY_EVENT_TYPES[Math.floor(Math.random()*CITY_EVENT_TYPES.length)];
+    const duration = type.minDuration + Math.floor(Math.random()*(type.maxDuration-type.minDuration+1));
+    const end = start + duration - 1;
+    list.push({ id: uid("evt"), label:type.label, icon:type.icon, demandBonus:type.demandBonus, startDay:start, endDay:end });
+    lastEnd = end;
+  }
+}
+function activeCityEvents(cityId){
+  return (state.cityEvents[cityId]||[]).filter(e=> state.day>=e.startDay && state.day<=e.endDay);
+}
+function upcomingCityEvents(cityId, withinDays){
+  return (state.cityEvents[cityId]||[]).filter(e=> e.endDay>=state.day && e.startDay<=state.day+withinDays);
+}
+
+const SUPPLIER_CONTRACTS = {
+  linge: {
+    none:     { label:"Aucun contrat",      cost:0,  cleanBonus:0, reviewBonus:0 },
+    standard: { label:"Blanchisserie Standard", cost:20, cleanBonus:1, reviewBonus:0.2 },
+    premium:  { label:"Blanchisserie Premium",  cost:45, cleanBonus:2, reviewBonus:0.5 },
+  },
+  petitDej: {
+    none:     { label:"Aucun contrat",      cost:0,  priceBonus:0,   repBonus:0 },
+    standard: { label:"Petit-déjeuner continental", cost:25, priceBonus:0.03, repBonus:2 },
+    premium:  { label:"Buffet gourmet",     cost:60, priceBonus:0.08, repBonus:5 },
+  },
+};
+const CONTRACT_LABELS = { linge:"Linge & blanchisserie", petitDej:"Petit-déjeuner" };
+
+const COMPETITOR_NAMES = ["Le Grand Continental","Hôtel Riviera","Château Bellevue","Hôtel Central Park","Auberge du Lac","Palace Royal","Hôtel Horizon","Villa Étoile","Les Terrasses","Hôtel Méridien Local","Le Voyageur","Cosy Inn"];
+
+const MARKETING_CAMPAIGNS = {
+  facebook:  { label:"Campagne Facebook/Meta", icon:"👍", cost:320,  duration:5, demandBonus:0.10, repBonusPerDay:0.3, desc:"Ciblage large, coût modéré." },
+  instagram: { label:"Campagne Instagram",     icon:"📸", cost:500,  duration:5, demandBonus:0.18, repBonusPerDay:0.5, desc:"Belles photos de l'hôtel, bon rendement." },
+  google:    { label:"Google Ads",             icon:"🔍", cost:420,  duration:7, demandBonus:0.12, repBonusPerDay:0,   desc:"Capte les recherches directes, effet durable." },
+  tiktok:    { label:"Campagne TikTok",        icon:"🎵", cost:800,  duration:5, demandBonus:0.32, repBonusPerDay:0.4, desc:"Portée virale, plus cher mais très efficace." },
+};
+
+const INFLUENCERS = [
+  { id:"micro",  name:"@voyage_avec_lea",      followers:"45 K abonnés",  tier:"Micro-influenceuse",  cost:900,   duration:4, demandBonus:0.35, repBonusPerDay:1.4, riskThreshold:30 },
+  { id:"macro",  name:"@world_explorer_tom",   followers:"210 K abonnés", tier:"Influenceur confirmé", cost:3000,  duration:6, demandBonus:0.55, repBonusPerDay:2.4, riskThreshold:45 },
+  { id:"mega",   name:"@luxurystay_ines",      followers:"850 K abonnés", tier:"Méga-influenceuse",   cost:9000,  duration:8, demandBonus:0.85, repBonusPerDay:3.8, riskThreshold:60 },
+];
+
+const RANDOM_EVENTS = [
+  { id:"inspection", icon:"⭐", weight:3, label:"Inspection qualité surprise" },
+  { id:"greve",      icon:"🚩", weight:2, label:"Mouvement de grogne du personnel" },
+  { id:"vip",         icon:"💎", weight:2, label:"Client VIP de passage" },
+  { id:"groupe",       icon:"🚌", weight:3, label:"Groupe de touristes" },
+  { id:"degat",        icon:"💧", weight:2, label:"Dégât des eaux" },
+  { id:"blog",          icon:"📝", weight:2, label:"Article d'un blogueur voyage" },
+  { id:"fournisseur",   icon:"📦", weight:2, label:"Retard de livraison du linge" },
+];
+
+const REVIEW_AUTHORS = ["Marie","Thomas","Julien","Sarah","Karim","Fatima","Paul","Elena","Marco","Yuki","David","Chloé","Antoine","Nora"];
+const REVIEW_POS = [
+  "Séjour impeccable, personnel adorable.","Chambre propre et confortable, je recommande.","Excellent rapport qualité/prix pour cette étape.","Accueil chaleureux, tout était parfait.","Très bonne expérience, on reviendra."
+];
+const REVIEW_NEU = [
+  "Séjour correct sans plus.","Rien à redire mais rien d'exceptionnel non plus.","Convient pour une nuit d'étape.","Prestations dans la moyenne."
+];
+const REVIEW_NEG = [
+  "Chambre pas assez propre à notre goût.","Un problème technique a gâché le séjour.","Accueil un peu froid, dommage.","Décevant par rapport au prix payé."
+];
+
+const MESSAGE_TYPES = {
+  demande:     { icon:"🙋", label:"Demande spéciale" },
+  reclamation: { icon:"⚠️", label:"Réclamation" },
+  objetPerdu:  { icon:"🧳", label:"Objet perdu" },
+};
+const DEMANDE_SUBJECTS = [
+  "Lit bébé pour la chambre", "Étage calme demandé", "Arrivée tardive prévue",
+  "Réservation d'une table au restaurant", "Oreillers supplémentaires souhaités", "Late check-out demandé",
+];
+const RECLAMATION_SUBJECTS = [
+  "Bruit dans le couloir la nuit dernière", "Climatisation en panne", "Chambre pas assez propre à l'arrivée",
+  "Wifi ne fonctionne pas", "Facturation qui semble incorrecte", "Chauffage/climatisation mal réglé",
+];
+const OBJET_PERDU_SUBJECTS = [
+  "Chargeur de téléphone oublié", "Livre laissé sur la table de chevet", "Écharpe oubliée dans le placard",
+  "Lunettes de soleil égarées", "Parapluie oublié à la réception", "Trousse de toilette oubliée",
+];
+
+const MISSIONS = [
+  { id:"m1", label:"Atteindre 50 000 € de trésorerie", reward:4000, check: s=> s.cash>=50000 },
+  { id:"m2", label:"Recruter 3 employés au total", reward:2000, check: s=> s.hotels.reduce((a,h)=>a+h.staff.length,0)>=3 },
+  { id:"m3", label:"Construire votre premier équipement", reward:2500, check: s=> s.hotels.some(h=>Object.values(h.amenities).some(v=>v)) },
+  { id:"m4", label:"Ouvrir un deuxième hôtel", reward:5000, check: s=> s.hotels.length>=2 },
+  { id:"m5", label:"Atteindre 90% d'occupation sur un hôtel en une journée", reward:3000, check: s=> s._maxOccToday>=0.9 },
+  { id:"m6", label:"Obtenir une réputation de 80+ sur un hôtel", reward:4000, check: s=> s.hotels.some(h=>h.reputation>=80) },
+  { id:"m7", label:"Rénover 5 chambres au niveau Luxe (tous hôtels)", reward:3500, check: s=> s.hotels.reduce((a,h)=>a+h.rooms.filter(r=>r.quality>=3).length,0)>=5 },
+  { id:"m8", label:"Rembourser un premier emprunt", reward:1500, check: s=> s._loanRepaidOnce },
+];
+
+/* ============================================================
+   ÉTAT DU JEU (en mémoire uniquement)
+   ============================================================ */
+let state = {
+  cash: 25000,
+  day: 1,
+  hotels: [],
+  activeHotelId: null,
+  log: [],
+  cashHistory: [],
+  loans: [],
+  missionsCompleted: [],
+  _maxOccToday: 0,
+  _loanRepaidOnce: false,
+  fastForwarding: false,
+  competitors: {},
+  cityEvents: {},
+  tutorialSeen: false,
+};
+
+function uid(prefix){ return prefix + "_" + Math.random().toString(36).slice(2,9); }
+
+function makeStarterHotel(){
+  const rooms = [];
+  const layout = [["standard", 5], ["superieure", 3], ["suite", 2]];
+  let n = 101;
+  layout.forEach(([type,count])=>{
+    for(let i=0;i<count;i++){
+      rooms.push({ id: uid("room"), number: n++, type, quality: 1, status: "clean", renovateDaysLeft: 0, priceOverride: null });
+    }
+  });
+  return {
+    id: uid("hotel"), name: "Auberge du Vieux Pont", cityId: "strasbourg",
+    reputation: 55, rooms, staff: [], amenities: {}, manager: false,
+    daysSincePurchase: 0, reviews: [], reviewAvgHistory: [],
+    contracts: { linge:"none", petitDej:"none" },
+    activeCampaigns: [],
+    occupancyHistory: [],
+    messages: [],
+  };
+}
+
+function initCompetitors(){
+  CITIES.forEach(city=>{
+    const shuffled = [...COMPETITOR_NAMES].sort(()=>Math.random()-0.5);
+    const list = [];
+    for(let i=0;i<3;i++){
+      list.push({ name: shuffled[i], reputation: 40 + Math.round(Math.random()*35) });
+    }
+    state.competitors[city.id] = list;
+  });
+}
+function evolveCompetitors(){
+  Object.values(state.competitors).forEach(list=>{
+    list.forEach(c=>{
+      c.reputation = Math.max(20, Math.min(95, c.reputation + (Math.random()-0.5)*4));
+    });
+  });
+}
+
+function initGame(){
+  const h = makeStarterHotel();
+  state.hotels.push(h);
+  initCompetitors();
+  state.activeHotelId = h.id;
+  addLog("Vous rachetez votre premier établissement : l'Auberge du Vieux Pont à Strasbourg. Bon courage, patron·ne !");
+  state.cashHistory.push({day:1, cash:state.cash});
+  render();
+}
+
+function activeHotel(){ return state.hotels.find(h=>h.id===state.activeHotelId); }
+function cityOf(hotel){ return CITIES.find(c=>c.id===hotel.cityId); }
+function addLog(msg){ state.log.unshift({day: state.day, msg}); if(state.log.length>150) state.log.pop(); }
+
+function toast(msg, kind){
+  if(state.fastForwarding) return;
+  const wrap = document.getElementById("toast-wrap");
+  const t = document.createElement("div");
+  t.className = "toast" + (kind==="bad"?" bad":kind==="good"?" good":"");
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(()=>t.remove(), 3800);
+}
+function fmtMoney(n){ return Math.round(n).toLocaleString("fr-FR", {maximumFractionDigits:0}) + " €"; }
+
+function computeStars(hotel){
+  let base = Math.round(hotel.reputation/20);
+  const amenCount = Object.values(hotel.amenities).filter(Boolean).length;
+  if(amenCount>=5) base += 1;
+  return Math.max(1, Math.min(5, base));
+}
+
+function staffLevel(s){ return s.xp>=60?3 : s.xp>=20?2 : 1; }
+function staffLevelMult(s){ const l=staffLevel(s); return l===3?1.3 : l===2?1.15 : 1; }
+
+/* ============================================================
+   MOTEUR DE JEU — PASSAGE AU JOUR SUIVANT
+   ============================================================ */
+function rollEvent(){
+  const total = RANDOM_EVENTS.reduce((s,e)=>s+e.weight,0);
+  if(Math.random() > 0.35) return null; // 35% chance qu'un événement survienne
+  let r = Math.random()*total;
+  for(const e of RANDOM_EVENTS){ if(r<e.weight) return e; r-=e.weight; }
+  return null;
+}
+
+function nextDay(){
+  let totalRevenue = 0, totalExpenses = 0;
+  const dayEvents = [];
+  state._maxOccToday = 0;
+
+  state.hotels.forEach(hotel=>{
+    const isActive = hotel.id === state.activeHotelId;
+    const city = cityOf(hotel);
+    const season = SEASONS[(state.day + CITIES.indexOf(city)) % 4];
+    const seasonMult = season==="Haute saison"?1.25 : season==="Basse saison"?0.8:1.0;
+    const neglect = (!isActive && !hotel.manager);
+
+    // ---- événement aléatoire du jour pour cet hôtel ----
+    let demandMult = 1, cleanCapacityMult = 1, extraBreakChance = 0, repDelta0 = 0, forceVIP = false, moraleHitAll = 0;
+    const ev = rollEvent();
+    if(ev){
+      if(ev.id==="inspection"){
+        if(hotel.reputation>=65){ state.cash += 600; totalRevenue += 0; repDelta0 += 3; dayEvents.push({icon:ev.icon, text:`${hotel.name} : inspection qualité réussie, prime de 600 € et +réputation.`}); }
+        else { repDelta0 -= 4; dayEvents.push({icon:ev.icon, text:`${hotel.name} : inspection qualité décevante, réputation en baisse.`}); }
+      } else if(ev.id==="greve"){
+        cleanCapacityMult = 0.4; demandMult *= 0.85; moraleHitAll = -10;
+        dayEvents.push({icon:ev.icon, text:`${hotel.name} : grogne du personnel, ménage ralenti et démoralisation.`});
+      } else if(ev.id==="vip"){
+        const suite = hotel.rooms.find(r=>r.type==="suite" && r.status==="clean");
+        if(suite){ const price = getRoomPrice(hotel, suite)*2; suite.status="occupied"; totalRevenue += price; repDelta0 += 3; forceVIP = true;
+          dayEvents.push({icon:ev.icon, text:`${hotel.name} : client VIP accueilli en suite pour ${fmtMoney(price)} !`}); }
+        else dayEvents.push({icon:ev.icon, text:`${hotel.name} : un client VIP s'est présenté mais aucune suite n'était prête. Occasion manquée.`});
+      } else if(ev.id==="groupe"){
+        demandMult *= 1.4;
+        dayEvents.push({icon:ev.icon, text:`${hotel.name} : un groupe de touristes fait grimper la demande aujourd'hui.`});
+      } else if(ev.id==="degat"){
+        const cand = hotel.rooms.filter(r=>r.status==="clean"||r.status==="occupied");
+        if(cand.length){ const r = cand[Math.floor(Math.random()*cand.length)]; r.status="broken"; repDelta0 -= 2;
+          dayEvents.push({icon:ev.icon, text:`${hotel.name} : dégât des eaux, chambre ${r.number} hors service.`}); }
+      } else if(ev.id==="blog"){
+        const shift = (Math.random()<0.6? 1:-1) * (2+Math.random()*4);
+        repDelta0 += shift;
+        dayEvents.push({icon:ev.icon, text:`${hotel.name} : un blogueur voyage évoque l'établissement (réputation ${shift>0?"+":""}${shift.toFixed(1)}).`});
+      } else if(ev.id==="fournisseur"){
+        cleanCapacityMult = 0.5;
+        dayEvents.push({icon:ev.icon, text:`${hotel.name} : retard de livraison de linge, ménage ralenti.`});
+      }
+    }
+
+    const staffCount = role => hotel.staff.filter(s=>s.role===role);
+    const femmeStaff = staffCount("femme"), techStaff = staffCount("technicien"), recepStaff = staffCount("reception");
+    const femmeEff = femmeStaff.reduce((s,st)=>s+staffLevelMult(st),0);
+    const techEff = techStaff.reduce((s,st)=>s+staffLevelMult(st),0);
+    const recepEff = recepStaff.reduce((s,st)=>s+staffLevelMult(st),0);
+    const hasDirecteur = hotel.staff.some(s=>s.role==="directeur");
+    if(!hotel.contracts) hotel.contracts = { linge:"none", petitDej:"none" };
+    const contractLinge = SUPPLIER_CONTRACTS.linge[hotel.contracts.linge] || SUPPLIER_CONTRACTS.linge.none;
+    const contractDej = SUPPLIER_CONTRACTS.petitDej[hotel.contracts.petitDej] || SUPPLIER_CONTRACTS.petitDej.none;
+
+    // ---- campagnes marketing & influenceurs actifs ----
+    if(!hotel.activeCampaigns) hotel.activeCampaigns = [];
+    let campaignDemandBonus = 0;
+    hotel.activeCampaigns.forEach(c=>{ campaignDemandBonus += c.demandBonus; repDelta0 += c.repBonusPerDay; });
+    demandMult *= (1 + campaignDemandBonus);
+
+    // ---- événements de la ville (marché de Noël, matchs, festivals...) ----
+    ensureCityEvents(hotel.cityId);
+    const cityEventsToday = activeCityEvents(hotel.cityId);
+    let cityEventDemandBonus = 0;
+    cityEventsToday.forEach(e=>{
+      cityEventDemandBonus += e.demandBonus;
+      if(e.startDay===state.day) dayEvents.push({icon:e.icon, text:`${city.city} : ${e.label} commence — forte hausse de la demande attendue.`});
+    });
+    demandMult *= (1 + cityEventDemandBonus);
+
+    // 1) checkout & fin de rénovation / construction
+    hotel.rooms.forEach(r=>{
+      if(r.status==="occupied" && !forceVIP){
+        if(Math.random() < 0.55) r.status = "dirty";
+      } else if(r.status==="renovating"){
+        r.renovateDaysLeft--;
+        if(r.renovateDaysLeft<=0){ r.status = "clean"; }
+      } else if(r.status==="building"){
+        r.buildDaysLeft--;
+        if(r.buildDaysLeft<=0){
+          r.status = "clean";
+          dayEvents.push({icon:"🏗️", text:`${hotel.name} : la chambre ${r.number} est achevée et prête à accueillir des clients.`});
+        }
+      }
+    });
+
+    // 2) nettoyage
+    let cleanCapacity = Math.round((3 + femmeEff*3 + contractLinge.cleanBonus) * cleanCapacityMult);
+    hotel.rooms.filter(r=>r.status==="dirty").slice(0,cleanCapacity).forEach(r=> r.status="clean");
+
+    // 3) pannes
+    hotel.rooms.forEach(r=>{
+      if(r.status==="clean" || r.status==="occupied"){
+        const q = QUALITY_LEVELS[r.quality];
+        let chance = q.breakChance * (neglect?1.6:1) * (hasDirecteur?0.7:1) + extraBreakChance;
+        if(Math.random() < chance){ r.status = "broken"; }
+      }
+    });
+
+    // 4) réparation auto
+    let repairCapacity = Math.round(techEff*2);
+    let repairCostEach = techEff>0 ? 90 : 180;
+    hotel.rooms.filter(r=>r.status==="broken").slice(0, repairCapacity).forEach(r=>{
+      r.status = "clean"; state.cash -= repairCostEach; totalExpenses += repairCostEach;
+    });
+
+    // 5) réputation
+    const brokenNow = hotel.rooms.filter(r=>r.status==="broken").length;
+    const dirtyNow = hotel.rooms.filter(r=>r.status==="dirty").length;
+    let repDelta = repDelta0*0.3;
+    repDelta -= brokenNow*1.5*0.3;
+    repDelta -= dirtyNow*0.6*0.3;
+    repDelta += recepEff*0.4*0.3;
+    Object.keys(hotel.amenities).forEach(a=>{ const lvl=hotel.amenities[a]; if(lvl) repDelta += AMENITIES[a].repBonus*AMENITY_LEVEL_MULT[lvl]*0.05*0.3; });
+    Object.keys(THEMES).forEach(tk=>{ if(isThemeActive(hotel, tk)) repDelta += THEMES[tk].repBonus*0.05*0.3; });
+    repDelta += contractDej.repBonus*0.05*0.3;
+    if(hasDirecteur) repDelta += 1*0.3;
+    if(neglect) repDelta -= 1.2*0.3;
+    const recentReviews = hotel.reviews.slice(0,10);
+    if(recentReviews.length){ const avg = recentReviews.reduce((s,r)=>s+r.overall,0)/recentReviews.length; repDelta += (avg-3)*0.5; }
+    repDelta += (Math.random()-0.5)*0.8*0.3;
+    hotel.reputation = Math.max(5, Math.min(100, hotel.reputation + repDelta));
+
+    // 6) réservations
+    let amenityPriceBonus = 1;
+    Object.keys(hotel.amenities).forEach(a=>{ if(hotel.amenities[a]) amenityPriceBonus += AMENITIES[a].priceBonus; });
+    const availableRooms = hotel.rooms.filter(r=>r.status==="clean");
+    const demandScore = (hotel.reputation/100) * city.demand * seasonMult * (1 + recepEff*0.08) * demandMult * (hasDirecteur?1.1:1);
+    let bookingsToday = 0;
+    availableRooms.forEach(r=>{
+      const price = getRoomPrice(hotel, r);
+      const q = QUALITY_LEVELS[r.quality];
+      // Le prix pénalise l'attractivité, mais la qualité elle-même la renforce (clientèle prête à payer plus pour du mieux) :
+      // au global une chambre bien rénovée reste plus rentable qu'une chambre vétuste, à réputation égale.
+      const attractiveness = Math.max(0.05, demandScore - (price/ (ROOM_TYPES[r.type].basePrice*2.2)) + 0.35 + (q.mult-1)*0.5);
+      if(Math.random() < Math.min(0.92, attractiveness)){ r.status = "occupied"; totalRevenue += price; bookingsToday++; }
+    });
+
+    const totalRooms = hotel.rooms.length;
+    const occNow = hotel.rooms.filter(r=>r.status==="occupied").length;
+    const occRate = totalRooms? occNow/totalRooms : 0;
+    state._maxOccToday = Math.max(state._maxOccToday, occRate);
+
+    // 7) avis clients
+    const reviewChance = occRate*0.6;
+    const reviewCount = Math.random()<reviewChance ? (Math.random()<0.25?2:1) : 0;
+    for(let i=0;i<reviewCount;i++){
+      const noise = ()=> (Math.random()-0.5)*1.6;
+      let rClean = 3 + (dirtyNow>0?-1:0.7) + contractLinge.reviewBonus + noise();
+      let rAccueil = 3 + (recepEff>0?0.9:-0.3) + noise();
+      let rValeur = 3 + noise();
+      rClean = Math.max(1, Math.min(5, Math.round(rClean)));
+      rAccueil = Math.max(1, Math.min(5, Math.round(rAccueil)));
+      rValeur = Math.max(1, Math.min(5, Math.round(rValeur)));
+      const overall = (rClean+rAccueil+rValeur)/3;
+      const pool = overall>=4 ? REVIEW_POS : overall>=2.6 ? REVIEW_NEU : REVIEW_NEG;
+      const comment = pool[Math.floor(Math.random()*pool.length)];
+      hotel.reviews.unshift({ day: state.day, author: REVIEW_AUTHORS[Math.floor(Math.random()*REVIEW_AUTHORS.length)], rClean, rAccueil, rValeur, overall, comment });
+      if(hotel.reviews.length>30) hotel.reviews.pop();
+    }
+
+    // 7bis) messagerie : demandes, réclamations, objets perdus
+    if(!hotel.messages) hotel.messages = [];
+    const occupiedRoomsList = hotel.rooms.filter(r=>r.status==="occupied");
+    const randomOccupiedRoom = ()=> occupiedRoomsList.length ? occupiedRoomsList[Math.floor(Math.random()*occupiedRoomsList.length)].number : null;
+    const pushMessage = (type, subjects)=>{
+      hotel.messages.unshift({
+        id: uid("msg"), day: state.day, type, status:"nouveau",
+        guestName: REVIEW_AUTHORS[Math.floor(Math.random()*REVIEW_AUTHORS.length)],
+        roomNumber: randomOccupiedRoom(),
+        subject: subjects[Math.floor(Math.random()*subjects.length)],
+      });
+      if(hotel.messages.length>60) hotel.messages.pop();
+    };
+    if(occupiedRoomsList.length>0 && Math.random() < 0.10*occRate + 0.03) pushMessage("demande", DEMANDE_SUBJECTS);
+    const reclamationChance = 0.06 + (dirtyNow>0?0.10:0) + (brokenNow>0?0.14:0);
+    if(occupiedRoomsList.length>0 && Math.random() < reclamationChance) pushMessage("reclamation", RECLAMATION_SUBJECTS);
+    if(bookingsToday>0 && Math.random() < 0.05) pushMessage("objetPerdu", OBJET_PERDU_SUBJECTS);
+    // réclamations non traitées depuis trop longtemps : petite pénalité de réputation, une seule fois
+    hotel.messages.forEach(m=>{
+      if(m.type==="reclamation" && m.status==="nouveau" && (state.day-m.day)>=3 && !m._penalized){
+        hotel.reputation = Math.max(5, hotel.reputation-2);
+        m._penalized = true;
+        dayEvents.push({icon:"⚠️", text:`${hotel.name} : une réclamation restée sans réponse a nui à la réputation.`});
+      }
+    });
+
+    // 8) salaires, xp, moral, turnover
+    let salaries = hotel.staff.reduce((s,st)=> s + STAFF_ROLES[st.role].salary, 0);
+    let upkeep = Object.keys(hotel.amenities).reduce((s,a)=>{ const lvl=hotel.amenities[a]; return s + (lvl?AMENITIES[a].upkeep*AMENITY_UPKEEP_MULT[lvl]:0); }, 0);
+    upkeep += contractLinge.cost + contractDej.cost;
+    state.cash -= (salaries + upkeep);
+    totalExpenses += (salaries + upkeep);
+
+    for(let i=hotel.staff.length-1;i>=0;i--){
+      const s = hotel.staff[i];
+      s.xp = (s.xp||0) + 1;
+      let moraleDelta = 0.8 + moraleHitAll;
+      if(brokenNow>2 || dirtyNow>3) moraleDelta -= 3;
+      if(state.cash<0) moraleDelta -= 2;
+      s.morale = Math.max(0, Math.min(100, (s.morale??70) + moraleDelta));
+      if(s.morale < 22 && Math.random() < 0.08){
+        dayEvents.push({icon:"🚪", text:`${hotel.name} : ${s.name} (${STAFF_ROLES[s.role].label}) démissionne, démoralisé·e.`});
+        if(s.role==="manager") hotel.manager = false;
+        hotel.staff.splice(i,1);
+      }
+    }
+
+    for(let i=hotel.activeCampaigns.length-1;i>=0;i--){
+      const c = hotel.activeCampaigns[i];
+      c.daysLeft--;
+      if(c.daysLeft<=0){
+        dayEvents.push({icon:c.icon, text:`${hotel.name} : campagne « ${c.label} » terminée.`});
+        hotel.activeCampaigns.splice(i,1);
+      }
+    }
+
+    if(!hotel.occupancyHistory) hotel.occupancyHistory = [];
+    hotel.occupancyHistory.push({ day: state.day, occRate: Math.round(occRate*100) });
+    if(hotel.occupancyHistory.length>120) hotel.occupancyHistory.shift();
+
+    hotel.daysSincePurchase++;
+    hotel._lastReport = { bookingsToday, availableCount: availableRooms.length, brokenNow, dirtyNow, salaries, upkeep };
+  });
+
+  evolveCompetitors();
+
+  // ---- emprunts ----
+  for(let i=state.loans.length-1;i>=0;i--){
+    const loan = state.loans[i];
+    state.cash -= loan.dailyPayment;
+    totalExpenses += loan.dailyPayment;
+    loan.daysLeft--;
+    if(loan.daysLeft<=0){
+      state.loans.splice(i,1);
+      state._loanRepaidOnce = true;
+      dayEvents.push({icon:"🏦", text:`Emprunt de ${fmtMoney(loan.amount)} intégralement remboursé.`});
+    }
+  }
+
+  state.cash += totalRevenue;
+  state.day++;
+  state.cashHistory.push({day: state.day, cash: state.cash});
+  if(state.cashHistory.length>120) state.cashHistory.shift();
+
+  const net = totalRevenue - totalExpenses;
+  addLog(`Jour ${state.day-1} clôturé — Revenus ${fmtMoney(totalRevenue)}, Dépenses ${fmtMoney(totalExpenses)}, Net ${net>=0?"+":""}${fmtMoney(net)}.`);
+  dayEvents.forEach(e=>addLog(`${e.icon} ${e.text}`));
+  state._todayEvents = dayEvents;
+
+  // ---- missions ----
+  MISSIONS.forEach(m=>{
+    if(!state.missionsCompleted.includes(m.id) && m.check(state)){
+      state.missionsCompleted.push(m.id);
+      state.cash += m.reward;
+      dayEvents.push({icon:"🎯", text:`Objectif atteint : « ${m.label} » (+${fmtMoney(m.reward)})`});
+      addLog(`🎯 Objectif atteint : « ${m.label} » (+${fmtMoney(m.reward)})`);
+      toast(`Objectif atteint : ${m.label} (+${fmtMoney(m.reward)})`, "good");
+    }
+  });
+
+  if(!state.fastForwarding){
+    toast(`Jour ${state.day-1} clôturé — Net ${net>=0?"+":""}${fmtMoney(net)}`, net>=0?"good":"bad");
+  }
+  if(state.cash < 0 && !state.fastForwarding){ toast("Trésorerie négative ! Vos finances sont dans le rouge.", "bad"); }
+
+  render();
+  return { totalRevenue, totalExpenses, net, events: dayEvents };
+}
+
+function fastForward(days){
+  state.fastForwarding = true;
+  let sumRev=0, sumExp=0, missionsBefore = state.missionsCompleted.length;
+  for(let i=0;i<days;i++){ const r = nextDay(); sumRev+=r.totalRevenue; sumExp+=r.totalExpenses; }
+  state.fastForwarding = false;
+  const newMissions = state.missionsCompleted.length - missionsBefore;
+  toast(`${days} jours écoulés — Revenus ${fmtMoney(sumRev)}, Dépenses ${fmtMoney(sumExp)}${newMissions>0?`, ${newMissions} objectif(s) atteint(s)`:""}`, (sumRev-sumExp)>=0?"good":"bad");
+  render();
+}
+
+function amenityPriceMultiplier(hotel){
+  let amenityBonus = 1;
+  Object.keys(hotel.amenities).forEach(a=>{ const lvl=hotel.amenities[a]; if(lvl) amenityBonus += AMENITIES[a].priceBonus*AMENITY_LEVEL_MULT[lvl]; });
+  Object.keys(THEMES).forEach(tk=>{ if(isThemeActive(hotel, tk)) amenityBonus += THEMES[tk].priceBonus; });
+  if(hotel.contracts && hotel.contracts.petitDej){ amenityBonus += (SUPPLIER_CONTRACTS.petitDej[hotel.contracts.petitDej]||SUPPLIER_CONTRACTS.petitDej.none).priceBonus; }
+  return amenityBonus;
+}
+function getRoomPrice(hotel, room){
+  if(room.priceOverride!=null) return room.priceOverride;
+  const base = ROOM_TYPES[room.type].basePrice;
+  const q = QUALITY_LEVELS[room.quality];
+  return Math.round(base * q.mult * amenityPriceMultiplier(hotel));
+}
+function suggestedRoomPrice(hotel, room){
+  const base = ROOM_TYPES[room.type].basePrice;
+  const q = QUALITY_LEVELS[room.quality];
+  const events = activeCityEvents(hotel.cityId);
+  const eventBonus = events.reduce((s,e)=>s+e.demandBonus,0);
+  return Math.round(base * q.mult * amenityPriceMultiplier(hotel) * (1 + eventBonus*0.7));
+}
+
+/* ============================================================
+   ACTIONS JOUEUR
+   ============================================================ */
+function repairRoom(hotelId, roomId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const room = hotel.rooms.find(r=>r.id===roomId);
+  const hasTech = hotel.staff.some(s=>s.role==="technicien");
+  const cost = hasTech ? 90 : 180;
+  if(state.cash < cost){ toast("Fonds insuffisants pour cette réparation.", "bad"); return; }
+  state.cash -= cost; room.status = "clean";
+  addLog(`Réparation manuelle chambre ${room.number} (${hotel.name}) : -${fmtMoney(cost)}.`);
+  toast(`Chambre ${room.number} réparée.`); render();
+}
+function cleanRoom(hotelId, roomId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  hotel.rooms.find(r=>r.id===roomId).status = "clean"; render();
+}
+function startRenovation(hotelId, roomId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const room = hotel.rooms.find(r=>r.id===roomId);
+  if(room.quality >= QUALITY_LEVELS.length-1){ toast("Chambre déjà au niveau maximal.", "bad"); return; }
+  const cost = RENOVATION_COST[room.quality+1];
+  if(state.cash < cost){ toast("Fonds insuffisants pour rénover.", "bad"); return; }
+  state.cash -= cost; room.status = "renovating"; room.renovateDaysLeft = 2; room.quality += 1;
+  addLog(`Rénovation lancée chambre ${room.number} (${hotel.name}) → ${QUALITY_LEVELS[room.quality].label} : -${fmtMoney(cost)}.`);
+  toast(`Rénovation en cours, chambre ${room.number}.`); render();
+}
+function roomBuildCost(hotel, type){
+  return Math.round(ROOM_BUILD_COST[type] * (1 + hotel.rooms.length*0.02));
+}
+function buildRoom(hotelId, type){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  if(hotel.rooms.length >= MAX_ROOMS_PER_HOTEL){ toast("Cet hôtel a atteint sa capacité maximale.", "bad"); return; }
+  const cost = roomBuildCost(hotel, type);
+  if(state.cash < cost){ toast("Fonds insuffisants pour cette construction.", "bad"); return; }
+  state.cash -= cost;
+  const nextNumber = hotel.rooms.length ? Math.max(...hotel.rooms.map(r=>r.number))+1 : 101;
+  hotel.rooms.push({ id: uid("room"), number: nextNumber, type, quality: 1, status: "building", buildDaysLeft: ROOM_BUILD_DAYS, renovateDaysLeft: 0, priceOverride: null });
+  addLog(`Construction lancée : chambre ${nextNumber} (${ROOM_TYPES[type].label}) à ${hotel.name} (-${fmtMoney(cost)}, ${ROOM_BUILD_DAYS} jours).`);
+  toast(`Nouvelle chambre en construction (${ROOM_BUILD_DAYS} jours).`, "good");
+  render();
+}
+function setRoomPrice(hotelId, roomId, val){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  hotel.rooms.find(r=>r.id===roomId).priceOverride = val===""? null : Math.max(10, parseInt(val)||0);
+  render();
+}
+function applySuggestedPrice(hotelId, roomId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const room = hotel.rooms.find(r=>r.id===roomId);
+  room.priceOverride = suggestedRoomPrice(hotel, room);
+  toast(`Prix conseillé appliqué à la chambre ${room.number}.`);
+  render();
+}
+function applyAllSuggestedPrices(hotelId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  hotel.rooms.forEach(r=>{ if(r.status!=="building") r.priceOverride = suggestedRoomPrice(hotel, r); });
+  addLog(`Prix conseillés appliqués à toutes les chambres de ${hotel.name}.`);
+  toast("Prix conseillés appliqués à toutes les chambres.", "good");
+  render();
+}
+function hireStaff(hotelId, role){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  hotel.staff.push({ id: uid("staff"), role, name: randomName(), xp:0, morale:70 });
+  addLog(`Recrutement : ${STAFF_ROLES[role].label} à ${hotel.name}.`);
+  toast(`${STAFF_ROLES[role].label} recruté·e.`); render();
+}
+function fireStaff(hotelId, staffId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const idx = hotel.staff.findIndex(s=>s.id===staffId);
+  if(hotel.staff[idx].role==="manager") hotel.manager = false;
+  hotel.staff.splice(idx,1);
+  toast("Employé·e licencié·e."); render();
+}
+function givePrime(hotelId, staffId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const s = hotel.staff.find(x=>x.id===staffId);
+  if(state.cash < 150){ toast("Fonds insuffisants pour cette prime.", "bad"); return; }
+  state.cash -= 150; s.morale = Math.min(100, (s.morale??70)+20);
+  toast(`Prime versée à ${s.name}.`); render();
+}
+const NAMES = ["Camille","Léa","Hugo","Sofia","Nathan","Chloé","Adam","Manon","Yanis","Inès","Louis","Emma","Rayan","Alice","Noah","Jade"];
+function randomName(){ return NAMES[Math.floor(Math.random()*NAMES.length)]; }
+
+function resolveMessage(hotelId, messageId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const msg = hotel.messages.find(m=>m.id===messageId);
+  if(!msg || msg.status==="traite") return;
+  msg.status = "traite";
+  if(msg.type==="reclamation" && !msg._penalized){
+    hotel.reputation = Math.min(100, hotel.reputation + 1.5);
+    toast(`Réclamation traitée — client rassuré (${msg.guestName}).`, "good");
+  } else if(msg.type==="demande"){
+    hotel.reputation = Math.min(100, hotel.reputation + 0.8);
+    toast(`Demande satisfaite pour ${msg.guestName}.`, "good");
+  } else {
+    toast(`Objet retrouvé et rendu à ${msg.guestName}.`, "good");
+  }
+  addLog(`Message traité : « ${msg.subject} » (${msg.guestName}, ${hotel.name}).`);
+  render();
+}
+
+function buildAmenity(hotelId, key){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const info = AMENITIES[key];
+  if(state.cash < info.cost){ toast("Fonds insuffisants pour cet équipement.", "bad"); return; }
+  state.cash -= info.cost; hotel.amenities[key] = 1;
+  addLog(`Nouvel équipement : ${info.label} à ${hotel.name} (-${fmtMoney(info.cost)}), niveau 1.`);
+  toast(`${info.label} construit·e !`, "good"); render();
+}
+
+function upgradeAmenity(hotelId, key){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const info = AMENITIES[key];
+  const level = amenityLevel(hotel, key);
+  if(level<1){ toast("Cet équipement n'est pas encore construit.", "bad"); return; }
+  if(level>=AMENITY_MAX_LEVEL){ toast("Cet équipement est déjà au niveau maximal.", "bad"); return; }
+  const cost = Math.round(info.cost * AMENITY_UPGRADE_COST_MULT[level+1]);
+  if(state.cash < cost){ toast("Fonds insuffisants pour cette amélioration.", "bad"); return; }
+  state.cash -= cost; hotel.amenities[key] = level+1;
+  addLog(`${info.label} amélioré·e à ${hotel.name} → niveau ${level+1} (-${fmtMoney(cost)}).`);
+  toast(`${info.label} passe au niveau ${level+1} !`, "good"); render();
+}
+
+function setContract(hotelId, category, tier){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  if(!hotel.contracts) hotel.contracts = { linge:"none", petitDej:"none" };
+  hotel.contracts[category] = tier;
+  const info = SUPPLIER_CONTRACTS[category][tier];
+  addLog(`Contrat ${CONTRACT_LABELS[category]} : ${info.label} à ${hotel.name}.`);
+  toast(`Contrat mis à jour : ${info.label}.`);
+  render();
+}
+
+function startCampaign(hotelId, key){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const info = MARKETING_CAMPAIGNS[key];
+  if(state.cash < info.cost){ toast("Fonds insuffisants pour cette campagne.", "bad"); return; }
+  state.cash -= info.cost;
+  hotel.activeCampaigns.push({ kind:"ad", key, label:info.label, icon:info.icon, demandBonus:info.demandBonus, repBonusPerDay:info.repBonusPerDay, daysLeft:info.duration });
+  addLog(`Campagne lancée : ${info.label} à ${hotel.name} (-${fmtMoney(info.cost)}, ${info.duration} jours).`);
+  toast(`${info.label} lancée !`, "good");
+  render();
+}
+
+function bookInfluencer(hotelId, infId){
+  const hotel = state.hotels.find(h=>h.id===hotelId);
+  const inf = INFLUENCERS.find(i=>i.id===infId);
+  if(state.cash < inf.cost){ toast("Fonds insuffisants pour ce partenariat.", "bad"); return; }
+  state.cash -= inf.cost;
+  const brokenCount = hotel.rooms.filter(r=>r.status==="broken").length;
+  let successChance = 0.55 + (hotel.reputation - inf.riskThreshold)/80;
+  if(brokenCount>0) successChance -= 0.25;
+  successChance = Math.max(0.1, Math.min(0.95, successChance));
+  if(Math.random() < successChance){
+    hotel.activeCampaigns.push({ kind:"influencer", key:inf.id, label:inf.name, icon:"🌟", demandBonus:inf.demandBonus, repBonusPerDay:inf.repBonusPerDay, daysLeft:inf.duration });
+    addLog(`${inf.name} (${inf.followers}) publie un contenu élogieux sur ${hotel.name} !`);
+    toast(`Partenariat réussi avec ${inf.name} !`, "good");
+  } else {
+    const penalty = 4 + Math.random()*5;
+    hotel.reputation = Math.max(5, hotel.reputation - penalty);
+    addLog(`${inf.name} publie un avis mitigé sur ${hotel.name} — l'hôtel n'était pas encore prêt pour cette visibilité (réputation -${penalty.toFixed(1)}).`);
+    toast(`Partenariat décevant avec ${inf.name}...`, "bad");
+  }
+  render();
+}
+
+function buyHotelInCity(cityId){
+  const city = CITIES.find(c=>c.id===cityId);
+  if(state.hotels.some(h=>h.cityId===cityId)){ toast("Vous possédez déjà un hôtel dans cette ville.", "bad"); return; }
+  if(state.cash < city.cost){ toast("Fonds insuffisants pour cette acquisition.", "bad"); return; }
+  state.cash -= city.cost;
+  const rooms = []; let n = 101;
+  [["standard",4],["superieure",2],["suite",1]].forEach(([type,count])=>{
+    for(let i=0;i<count;i++) rooms.push({ id: uid("room"), number:n++, type, quality:0, status:"clean", renovateDaysLeft:0, priceOverride:null });
+  });
+  const h = { id: uid("hotel"), name: `Hôtel de ${city.city}`, cityId, reputation:45, rooms, staff:[], amenities:{}, manager:false, daysSincePurchase:0, reviews:[], contracts:{ linge:"none", petitDej:"none" }, activeCampaigns:[], occupancyHistory:[], messages:[] };
+  state.hotels.push(h); state.activeHotelId = h.id;
+  addLog(`Expansion ! Nouvel hôtel acquis à ${city.city}, ${city.country} (-${fmtMoney(city.cost)}).`);
+  toast(`Bienvenue à ${city.city} !`, "good");
+  switchView("dashboard"); render();
+}
+function switchHotel(id){ state.activeHotelId = id; closeSidebar(); render(); }
+
+function takeLoan(amount){
+  const totalToRepay = Math.round(amount*1.18);
+  const days = 25;
+  state.loans.push({ id: uid("loan"), amount, totalToRepay, dailyPayment: Math.round(totalToRepay/days), daysLeft: days });
+  state.cash += amount;
+  addLog(`Emprunt souscrit : ${fmtMoney(amount)} (remboursement total ${fmtMoney(totalToRepay)} sur ${days} jours).`);
+  toast(`Emprunt de ${fmtMoney(amount)} accordé.`, "good"); render();
+}
+
+/* ============================================================
+   SAUVEGARDE / CHARGEMENT
+   ============================================================ */
+function normalizeLoadedState(){
+  state.hotels.forEach(h=>{
+    if(!h.contracts) h.contracts = { linge:"none", petitDej:"none" };
+    if(!h.activeCampaigns) h.activeCampaigns = [];
+    if(!h.occupancyHistory) h.occupancyHistory = [];
+    if(!h.messages) h.messages = [];
+    Object.keys(h.amenities||{}).forEach(k=>{ if(h.amenities[k]===true) h.amenities[k] = 1; });
+  });
+  if(!state.cityEvents) state.cityEvents = {};
+  if(!state.competitors || Object.keys(state.competitors).length===0){ state.competitors = {}; initCompetitors(); }
+  if(state.tutorialSeen===undefined) state.tutorialSeen = true;
+}
+function exportSave(){
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `hotel-empire-jour${state.day}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  toast("Sauvegarde téléchargée.", "good");
+}
+function importSave(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const loaded = JSON.parse(e.target.result);
+      if(!loaded.hotels || !Array.isArray(loaded.hotels)) throw new Error("format invalide");
+      state = loaded;
+      normalizeLoadedState();
+      addLog("Partie chargée depuis une sauvegarde.");
+      toast("Sauvegarde chargée avec succès.", "good");
+      render();
+    }catch(err){ toast("Fichier de sauvegarde invalide.", "bad"); }
+  };
+  reader.readAsText(file);
+}
+
+/* ============================================================
+   AUTO-SAUVEGARDE NAVIGATEUR (localStorage)
+   Fonctionne uniquement quand le fichier est ouvert directement
+   dans un navigateur (file:// ou http://) — pas dans l'aperçu
+   intégré de Claude.ai, qui bloque le stockage navigateur par
+   sécurité. Le jeu continue de fonctionner normalement si le
+   stockage est indisponible : la sauvegarde manuelle (JSON) reste
+   toujours utilisable.
+   ============================================================ */
+const AUTOSAVE_KEY = "hotel_empire_autosave_v1";
+let autosaveAvailable = true;
+try{
+  localStorage.setItem("__hotel_empire_test__","1");
+  localStorage.removeItem("__hotel_empire_test__");
+}catch(e){ autosaveAvailable = false; }
+
+function autoSaveToStorage(){
+  if(!autosaveAvailable) return;
+  try{ localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state)); }
+  catch(e){ autosaveAvailable = false; }
+}
+function loadAutoSaveFromStorage(){
+  if(!autosaveAvailable) return false;
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return false;
+    const loaded = JSON.parse(raw);
+    if(!loaded.hotels || !Array.isArray(loaded.hotels)) return false;
+    state = loaded;
+    normalizeLoadedState();
+    return true;
+  }catch(e){ return false; }
+}
+function clearAutoSave(){
+  if(!autosaveAvailable) return;
+  try{ localStorage.removeItem(AUTOSAVE_KEY); }catch(e){}
+}
+function resetGame(){
+  clearAutoSave();
+  state = {
+    cash: 25000, day: 1, hotels: [], activeHotelId: null, log: [], cashHistory: [],
+    loans: [], missionsCompleted: [], _maxOccToday: 0, _loanRepaidOnce: false,
+    fastForwarding: false, competitors: {}, cityEvents: {}, tutorialSeen: false,
+  };
+  initGame();
+  toast("Nouvelle partie démarrée.", "good");
+}
+function confirmNewGame(){
+  const ok = window.confirm("Démarrer une nouvelle partie effacera la progression actuelle (sauvegarde automatique du navigateur incluse). Le jeu actuel n'est pas perdu si vous l'avez exporté en JSON. Continuer ?");
+  if(ok) resetGame();
+}
+
+/* ============================================================
+   RENDU
+   ============================================================ */
+let currentView = "dashboard";
+function switchView(v){ currentView = v; closeSidebar(); render(); }
+
+function toggleSidebar(){
+  const sb = document.getElementById("sidebar");
+  const bd = document.getElementById("sidebar-backdrop");
+  const isOpen = sb.classList.contains("mobile-open");
+  if(isOpen){ closeSidebar(); } else { sb.classList.add("mobile-open"); bd.classList.add("visible"); }
+}
+function closeSidebar(){
+  const sb = document.getElementById("sidebar");
+  const bd = document.getElementById("sidebar-backdrop");
+  if(sb) sb.classList.remove("mobile-open");
+  if(bd) bd.classList.remove("visible");
+}
+
+function render(){
+  renderTopbar(); renderNav(); renderHotelTabs(); renderDateBar();
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-"+currentView).classList.add("active");
+  if(currentView==="dashboard") renderDashboard();
+  if(currentView==="rooms") renderRooms();
+  if(currentView==="staff") renderStaff();
+  if(currentView==="upgrades") renderUpgrades();
+  if(currentView==="finance") renderFinance();
+  if(currentView==="world") renderWorld();
+  if(currentView==="ranking") renderRanking();
+  if(currentView==="marketing") renderMarketing();
+  if(currentView==="calendar") renderCalendar();
+  if(currentView==="messages") renderMessages();
+  const footer = document.getElementById("app-footer");
+  if(footer){
+    footer.textContent = autosaveAvailable
+      ? "Hôtel Empire — jeu de gestion. Sauvegarde automatique du navigateur activée."
+      : "Hôtel Empire — jeu de gestion. Sauvegarde automatique indisponible ici : pensez à utiliser « Sauvegarder » régulièrement.";
+  }
+  autoSaveToStorage();
+}
+
+function renderTopbar(){
+  const totalRooms = state.hotels.reduce((s,h)=>s+h.rooms.length,0);
+  document.getElementById("hq-stats").innerHTML = `
+    <div class="stat"><b>${fmtMoney(state.cash)}</b><span>Trésorerie</span></div>
+    <div class="stat"><b>${state.hotels.length}</b><span>Hôtel${state.hotels.length>1?"s":""}</span></div>
+    <div class="stat"><b>${totalRooms}</b><span>Chambres</span></div>
+    ${state.loans.length? `<div class="stat"><b>${state.loans.length}</b><span>Emprunt${state.loans.length>1?"s":""} en cours</span></div>`:""}
+  `;
+  const mobileName = document.getElementById("mobile-hotel-name");
+  const mobileCash = document.getElementById("mobile-cash");
+  if(mobileName) mobileName.textContent = activeHotel().name;
+  if(mobileCash) mobileCash.textContent = fmtMoney(state.cash);
+}
+function renderNav(){
+  const tabs = [
+    ["dashboard","Tableau de bord"], ["rooms","Chambres"], ["staff","Personnel"],
+    ["upgrades","Rénovations & équipements"], ["marketing","Marketing"], ["calendar","Calendrier"],
+    ["messages","Messagerie"], ["finance","Finances"], ["world","Carte du monde"],
+    ["ranking","Classement"],
+  ];
+  const hotel = activeHotel();
+  const unreadMessages = hotel.messages ? hotel.messages.filter(m=>m.status==="nouveau").length : 0;
+  document.getElementById("nav").innerHTML = tabs.map(([id,label])=>
+    `<button class="${currentView===id?"active":""}" onclick="switchView('${id}')"><span>${label}</span>${id==="messages" && unreadMessages>0 ? `<span class="pill">${unreadMessages}</span>` : ""}</button>`
+  ).join("");
+}
+function renderHotelTabs(){
+  const tabsHtml = state.hotels.map(h=>{
+    const brokenCount = h.rooms.filter(r=>r.status==="broken").length;
+    return `<div class="hotel-tab ${h.id===state.activeHotelId?"active":""}" onclick="switchHotel('${h.id}')">
+      <span class="stars">${"★".repeat(computeStars(h))}</span>
+      <span class="name">${h.name}</span>
+      ${brokenCount>0?`<span class="warn">⚠ ${brokenCount}</span>`:""}
+    </div>`;
+  }).join("");
+  document.getElementById("hotel-tabs").innerHTML = `<div class="hotel-tabs-label">Mes établissements</div>${tabsHtml}`;
+}
+function renderDateBar(){
+  document.getElementById("date-label").textContent = `Jour ${state.day}`;
+  const city = cityOf(activeHotel());
+  const season = SEASONS[(state.day + CITIES.indexOf(city)) % 4];
+  document.getElementById("season-label").textContent = `${activeHotel().name} — ${city.city} · ${season}`;
+}
+
+function renderDashboard(){
+  const hotel = activeHotel();
+  const totalRooms = hotel.rooms.length;
+  const occ = hotel.rooms.filter(r=>r.status==="occupied").length;
+  const broken = hotel.rooms.filter(r=>r.status==="broken").length;
+  const dirty = hotel.rooms.filter(r=>r.status==="dirty").length;
+  const occRate = totalRooms? Math.round(occ/totalRooms*100) : 0;
+  const stars = computeStars(hotel);
+
+  const todaysEvents = (state._todayEvents||[]).filter(e=>e.text.startsWith(hotel.name));
+  const otherEvents = (state._todayEvents||[]).filter(e=>!e.text.startsWith(hotel.name));
+
+  document.getElementById("view-dashboard").innerHTML = `
+    <div class="grid g3">
+      <div class="card">
+        <h3>${hotel.name}<span class="sub">${cityOf(hotel).city} · ${"★".repeat(stars)}</span></h3>
+        <div class="kpi"><span>Réputation</span><b>${Math.round(hotel.reputation)}/100</b></div>
+        <div class="kpi"><span>Taux d'occupation</span><b>${occRate}%</b></div>
+        <div class="kpi"><span>Chambres cassées</span><b class="${broken>0?"neg":"pos"}">${broken}</b></div>
+        <div class="kpi"><span>Chambres sales</span><b class="${dirty>0?"neg":"pos"}">${dirty}</b></div>
+        <div class="kpi"><span>Personnel</span><b>${hotel.staff.length}</b></div>
+        <div class="kpi"><span>Équipements</span><b>${Object.keys(hotel.amenities).filter(k=>hotel.amenities[k]).length}</b></div>
+      </div>
+      <div class="card">
+        <h3>Résumé du dernier jour</h3>
+        ${hotel._lastReport ? `
+          <div class="kpi"><span>Réservations</span><b>${hotel._lastReport.bookingsToday}</b></div>
+          <div class="kpi"><span>Chambres disponibles</span><b>${hotel._lastReport.availableCount}</b></div>
+          <div class="kpi"><span>Salaires versés</span><b class="neg">-${fmtMoney(hotel._lastReport.salaries)}</b></div>
+          <div class="kpi"><span>Entretien équipements</span><b class="neg">-${fmtMoney(hotel._lastReport.upkeep)}</b></div>
+        ` : `<div class="empty-state">Passez au jour suivant pour voir le résumé.</div>`}
+      </div>
+      <div class="card">
+        <h3>Notifications du jour</h3>
+        ${todaysEvents.length===0 && otherEvents.length===0 ? `<div class="empty-state">Aucun événement notable.</div>` :
+          (todaysEvents.map(e=>`<div class="event-banner"><span class="ic">${e.icon}</span><span>${e.text.replace(hotel.name+" : ","")}</span></div>`).join("")
+          + (otherEvents.length? `<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;">${otherEvents.length} événement(s) sur vos autres hôtels — voir Finances.</div>`:""))}
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:14px;">
+      <div class="card">
+        <h3>Aperçu des chambres</h3>
+        <div id="rooms-grid">${hotel.rooms.slice(0,12).map(r=>roomDoorHtml(hotel,r,false)).join("")}</div>
+        ${hotel.rooms.length>12?`<div style="text-align:center;margin-top:10px;"><button class="btn ghost small" onclick="switchView('rooms')">Voir toutes les chambres →</button></div>`:""}
+      </div>
+      <div class="card">
+        <h3>Derniers avis clients<span class="sub">${hotel.reviews.length} au total</span></h3>
+        ${hotel.reviews.length===0?`<div class="empty-state">Pas encore d'avis. Ils arriveront après vos premiers séjours.</div>`:
+          hotel.reviews.slice(0,3).map(r=>`
+            <div class="review-card">
+              <div class="head"><span>${r.author}</span><span class="stars-static">${"★".repeat(Math.round(r.overall))}${"☆".repeat(5-Math.round(r.overall))}</span></div>
+              <div class="cats">Propreté ${r.rClean}/5 · Accueil ${r.rAccueil}/5 · Rapport qualité-prix ${r.rValeur}/5</div>
+              <div class="comment">« ${r.comment} »</div>
+            </div>`).join("")}
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>Alertes & recommandations</h3>
+      ${dashboardAdvice(hotel)}
+    </div>
+  `;
+}
+
+function dashboardAdvice(hotel){
+  const tips = [];
+  if(hotel.rooms.some(r=>r.status==="broken")) tips.push("⚠️ Des chambres sont en panne : réparez-les vite ou embauchez un technicien pour automatiser les réparations.");
+  if(hotel.staff.filter(s=>s.role==="femme").length===0) tips.push("🧹 Aucune femme/valet de chambre : le nettoyage sera lent après chaque départ.");
+  if(hotel.staff.filter(s=>s.role==="reception").length===0) tips.push("🛎️ Pas de réceptionniste : vos réservations et votre réputation en pâtissent.");
+  if(hotel.staff.some(s=>(s.morale??70)<35)) tips.push("😟 Le moral de certains employés est bas : envisagez une prime avant qu'ils ne démissionnent.");
+  if(hotel.reputation < 40) tips.push("📉 Réputation basse : améliorez la propreté, réparez les pannes ou ajoutez des équipements.");
+  if(state.cash > 15000 && hotel.rooms.filter(r=>r.quality<=1).length>0) tips.push("🛠️ Vous avez du capital : envisagez de rénover vos chambres les plus anciennes pour augmenter les prix.");
+  if(state.hotels.length===1 && state.cash > 30000) tips.push("🌍 Trésorerie confortable : direction la Carte du monde pour envisager une expansion !");
+  if(tips.length===0) tips.push("Tout roule ! Continuez à surveiller la réputation et les finances.");
+  return tips.map(t=>`<div class="kpi" style="border:none;">${t}</div>`).join("");
+}
+
+function roomDoorHtml(hotel, r, withActions){
+  const price = getRoomPrice(hotel, r);
+  const statusLabel = { clean:"Prête", occupied:"Occupée", dirty:"À nettoyer", broken:"En panne", renovating:"Rénovation…", building:"Construction…" }[r.status];
+  let actions = "";
+  if(withActions){
+    if(r.status==="broken") actions += `<button class="btn small brick" onclick="repairRoom('${hotel.id}','${r.id}')">Réparer</button>`;
+    if(r.status==="dirty") actions += `<button class="btn small ghost" onclick="cleanRoom('${hotel.id}','${r.id}')">Nettoyer</button>`;
+    if(r.status==="clean" && r.quality < QUALITY_LEVELS.length-1) actions += `<button class="btn small gold" onclick="startRenovation('${hotel.id}','${r.id}')">Rénover</button>`;
+  }
+  return `<div class="room-door ${r.status}">
+    <div>
+      <div class="num">${r.number}</div>
+      <div class="type">${ROOM_TYPES[r.type].label} · Niv. ${r.quality+1}/4 — ${QUALITY_LEVELS[r.quality].label}</div>
+    </div>
+    <div>
+      <div class="status">${statusLabel}${r.status==="building"?` (${r.buildDaysLeft}j)`:""}</div>
+      <div class="price">${price} €/nuit</div>
+    </div>
+    ${withActions?`<div class="actions">${actions}</div>`:""}
+  </div>`;
+}
+
+function renderRooms(){
+  const hotel = activeHotel();
+  const atCap = hotel.rooms.length >= MAX_ROOMS_PER_HOTEL;
+  document.getElementById("view-rooms").innerHTML = `
+    <div class="card">
+      <h3>Chambres — ${hotel.name}<span class="sub">${hotel.rooms.length} chambres</span></h3>
+      <div id="rooms-grid">${hotel.rooms.map(r=>roomDoorHtml(hotel,r,true)).join("")}</div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>Agrandir l'hôtel<span class="sub">${hotel.rooms.length}/${MAX_ROOMS_PER_HOTEL} chambres</span></h3>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">
+        Construisez de nouvelles chambres pour augmenter votre capacité d'accueil. La construction prend ${ROOM_BUILD_DAYS} jours et le coût augmente légèrement à mesure que l'hôtel grandit.
+        ${atCap?`<br><span style="color:var(--danger);font-weight:600;">⚠️ Capacité maximale atteinte pour cet hôtel.</span>`:""}
+      </div>
+      <div class="grid g3">
+        ${Object.entries(ROOM_TYPES).map(([type,info])=>{
+          const cost = roomBuildCost(hotel, type);
+          return `<div class="amenity-card">
+            <h4>${info.label}</h4>
+            <div style="font-size:11.5px;margin:6px 0;color:var(--ink-soft);">
+              Prix de base : ${info.basePrice}€/nuit<br>
+              Capacité : ${info.baseCap} personnes<br>
+              Construction : ${ROOM_BUILD_DAYS} jours
+            </div>
+            <button class="btn gold small" ${(state.cash<cost || atCap)?"disabled":""} onclick="buildRoom('${hotel.id}','${type}')">Construire — ${fmtMoney(cost)}</button>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>Tarification manuelle<span class="sub">Prix conseillé = ajusté selon les événements de la ville en cours</span></h3>
+      ${activeCityEvents(hotel.cityId).length>0?`<div class="event-banner"><span class="ic">📈</span><span>Demande en hausse dans ${cityOf(hotel).city} en ce moment — c'est le bon moment pour ajuster vos prix à la hausse.</span></div>`:""}
+      <div style="margin-bottom:10px;"><button class="btn ghost small" onclick="applyAllSuggestedPrices('${hotel.id}')">Appliquer le prix conseillé à toutes les chambres</button></div>
+      <table class="list">
+        <tr><th>Chambre</th><th>Type</th><th>Niveau</th><th>Prix de base</th><th>Prix conseillé</th><th>Prix personnalisé</th></tr>
+        ${hotel.rooms.map(r=>{
+          const base = Math.round(ROOM_TYPES[r.type].basePrice * QUALITY_LEVELS[r.quality].mult);
+          const suggested = suggestedRoomPrice(hotel, r);
+          return `<tr>
+            <td>${r.number}</td><td>${ROOM_TYPES[r.type].label}</td><td>Niv. ${r.quality+1}/4 — ${QUALITY_LEVELS[r.quality].label}</td>
+            <td>${base} €</td>
+            <td>${suggested} €${suggested>base?` <button class="btn small ghost" onclick="applySuggestedPrice('${hotel.id}','${r.id}')">Appliquer</button>`:""}</td>
+            <td><input type="number" min="10" placeholder="${base}" value="${r.priceOverride??""}" style="width:80px;" onchange="setRoomPrice('${hotel.id}','${r.id}',this.value)"> €</td>
+          </tr>`;
+        }).join("")}
+      </table>
+    </div>
+  `;
+}
+
+function renderStaff(){
+  const hotel = activeHotel();
+  const totalSalaries = hotel.staff.reduce((s,st)=>s+STAFF_ROLES[st.role].salary,0);
+  document.getElementById("view-staff").innerHTML = `
+    <div class="grid g2">
+      <div class="card">
+        <h3>Effectif — ${hotel.name}<span class="sub">Masse salariale/jour : ${fmtMoney(totalSalaries)}</span></h3>
+        ${hotel.staff.length===0?`<div class="empty-state">Aucun employé pour l'instant.</div>`:`
+        <table class="list">
+          <tr><th></th><th>Nom</th><th>Poste</th><th>Niveau</th><th>Moral</th><th>Salaire/j</th><th></th></tr>
+          ${hotel.staff.map(s=>{
+            const lvl = staffLevel(s); const morale = Math.round(s.morale??70);
+            const moraleColor = morale<35?"var(--danger)":morale<65?"var(--warn)":"var(--ok)";
+            return `<tr>
+              <td><span class="staff-avatar">${STAFF_ROLES[s.role].icon}</span></td>
+              <td>${s.name}</td>
+              <td>${STAFF_ROLES[s.role].label}</td>
+              <td>${"●".repeat(lvl)}${"○".repeat(3-lvl)}</td>
+              <td><span class="morale-bar"><div style="width:${morale}%;background:${moraleColor};"></div></span> ${morale}%</td>
+              <td>${STAFF_ROLES[s.role].salary} €</td>
+              <td style="white-space:nowrap;">
+                <button class="btn small ghost" onclick="givePrime('${hotel.id}','${s.id}')">Prime</button>
+                <button class="btn small brick" onclick="fireStaff('${hotel.id}','${s.id}')">Licencier</button>
+              </td>
+            </tr>`;
+          }).join("")}
+        </table>`}
+      </div>
+      <div class="card">
+        <h3>Recruter</h3>
+        ${Object.entries(STAFF_ROLES).map(([key,role])=>`
+          <div class="kpi">
+            <span><b>${role.label}</b><br><span style="font-size:11px;color:var(--ink-faint);">${role.desc} — ${role.salary}€/j</span></span>
+            <button class="btn small gold" onclick="hireStaff('${hotel.id}','${key}')">Embaucher</button>
+          </div>
+        `).join("")}
+        <div style="margin-top:10px;font-size:11px;color:var(--ink-faint);">
+          Le personnel gagne de l'expérience chaque jour travaillé (niveaux ●○○ à ●●●) et devient plus efficace. Un moral trop bas peut provoquer une démission — versez une prime pour le remonter.<br><br>
+          <b>Manager</b> évite la pénalité de négligence quand l'hôtel n'est pas actif. <b>Directeur d'établissement</b> est un poste plus coûteux qui améliore durablement les pannes, la réputation et la demande, même sur l'hôtel actif.
+        </div>
+      </div>
+    </div>
+  `;
+  hotel.manager = hotel.staff.some(s=>s.role==="manager");
+}
+
+function renderUpgrades(){
+  const hotel = activeHotel();
+  const byCategory = {};
+  Object.entries(AMENITIES).forEach(([key,info])=>{
+    if(!byCategory[info.category]) byCategory[info.category] = [];
+    byCategory[info.category].push([key,info]);
+  });
+  const amenityCardHtml = ([key,info])=>{
+    const level = amenityLevel(hotel, key);
+    const owned = level>0;
+    const maxed = level>=AMENITY_MAX_LEVEL;
+    const effRep = Math.round(info.repBonus * AMENITY_LEVEL_MULT[Math.max(level,1)]);
+    const effPrice = Math.round(info.priceBonus * AMENITY_LEVEL_MULT[Math.max(level,1)] * 100);
+    const effUpkeep = Math.round(info.upkeep * AMENITY_UPKEEP_MULT[Math.max(level,1)]);
+    const upgradeCost = owned && !maxed ? Math.round(info.cost * AMENITY_UPGRADE_COST_MULT[level+1]) : null;
+    return `<div class="amenity-card ${owned?"active":""}">
+      <h4>${info.icon} ${info.label}</h4>
+      <div class="lvl">${owned? (maxed?`Niveau ${level}/3 — Max`:`Niveau ${level}/3`) : "Non construit"}</div>
+      <div style="font-size:11.5px;margin:6px 0;color:var(--ink-soft);">
+        ${owned?`Actuellement : +${effRep} réputation, +${effPrice}% prix<br>Entretien : ${effUpkeep}€/j`
+                :`Niveau 1 : +${Math.round(info.repBonus)} réputation, +${Math.round(info.priceBonus*100)}% prix<br>Entretien : ${info.upkeep}€/j`}
+      </div>
+      ${!owned ? `<button class="btn gold small" ${state.cash<info.cost?"disabled":""} onclick="buildAmenity('${hotel.id}','${key}')">Construire — ${fmtMoney(info.cost)}</button>`
+        : maxed ? `<span class="badge ok">Niveau maximal</span>`
+        : `<button class="btn gold small" ${state.cash<upgradeCost?"disabled":""} onclick="upgradeAmenity('${hotel.id}','${key}')">Améliorer (niv. ${level+1}) — ${fmtMoney(upgradeCost)}</button>`}
+    </div>`;
+  };
+
+  document.getElementById("view-upgrades").innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Thématiques d'hôtel<span class="sub">Bonus de cohérence quand tous les équipements liés sont construits</span></h3>
+      <div class="grid g3">
+        ${Object.entries(THEMES).map(([key,theme])=>{
+          const owned = theme.amenities.filter(a=>hotel.amenities[a]).length;
+          const total = theme.amenities.length;
+          const complete = owned===total;
+          return `<div class="amenity-card ${complete?"active":""}">
+            <h4>${theme.icon} ${theme.label}</h4>
+            <div class="lvl">${complete?`Thématique complète ✓`:`${owned}/${total} équipements`}</div>
+            <div style="font-size:11.5px;margin:6px 0;color:var(--ink-soft);">
+              Requiert : ${theme.amenities.map(a=>AMENITIES[a].label).join(", ")}<br>
+              Bonus si complète : +${theme.repBonus} réputation, +${Math.round(theme.priceBonus*100)}% prix
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+    ${Object.entries(AMENITY_CATEGORIES).map(([catKey,catLabel])=>{
+      const items = byCategory[catKey]||[];
+      if(items.length===0) return "";
+      return `<div class="card" style="margin-bottom:14px;">
+        <h3>${catLabel}</h3>
+        <div class="grid g4">${items.map(amenityCardHtml).join("")}</div>
+      </div>`;
+    }).join("")}
+    <div class="card" style="margin-top:14px;">
+      <h3>Contrats fournisseurs</h3>
+      <div class="grid g2">
+        ${Object.entries(SUPPLIER_CONTRACTS).map(([category, tiers])=>{
+          const current = (hotel.contracts||{})[category] || "none";
+          return `<div>
+            <div style="font-size:12.5px;font-weight:650;margin-bottom:8px;">${CONTRACT_LABELS[category]}</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${Object.entries(tiers).map(([tierKey,info])=>`
+                <div class="amenity-card ${current===tierKey?"active":""}" style="padding:9px 12px;display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:600;">${info.label}</div>
+                    <div style="font-size:11px;color:var(--ink-soft);">${info.cost>0?fmtMoney(info.cost)+"/j":"Gratuit"}</div>
+                  </div>
+                  ${current===tierKey?`<span class="badge ok">Actif</span>`:`<button class="btn small ghost" onclick="setContract('${hotel.id}','${category}','${tierKey}')">Choisir</button>`}
+                </div>
+              `).join("")}
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>Rénovation des chambres<span class="sub">Coûts : ${RENOVATION_COST.slice(1).map(c=>fmtMoney(c)).join(" · ")}</span></h3>
+      <table class="list">
+        <tr><th>Chambre</th><th>Type</th><th>Niveau actuel</th><th>Statut</th><th></th></tr>
+        ${hotel.rooms.map(r=>{
+          const maxed = r.quality>=QUALITY_LEVELS.length-1;
+          const cost = maxed?null:RENOVATION_COST[r.quality+1];
+          return `<tr>
+            <td>${r.number}</td><td>${ROOM_TYPES[r.type].label}</td><td>Niv. ${r.quality+1}/4 — ${QUALITY_LEVELS[r.quality].label}</td>
+            <td>${r.status==="renovating"?`<span class="badge warn">En cours (${r.renovateDaysLeft}j)</span>`:r.status==="building"?`<span class="badge warn">Construction (${r.buildDaysLeft}j)</span>`:(maxed?`<span class="badge ok">Niveau max</span>`:"")}</td>
+            <td>${(!maxed && r.status!=="renovating" && r.status!=="occupied" && r.status!=="building")?`<button class="btn small gold" ${state.cash<cost?"disabled":""} onclick="startRenovation('${hotel.id}','${r.id}')">Rénover — ${fmtMoney(cost)}</button>`:""}</td>
+          </tr>`;
+        }).join("")}
+      </table>
+    </div>
+  `;
+}
+
+function renderMarketing(){
+  const hotel = activeHotel();
+  if(!hotel.activeCampaigns) hotel.activeCampaigns = [];
+  const brokenCount = hotel.rooms.filter(r=>r.status==="broken").length;
+
+  document.getElementById("view-marketing").innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Campagnes en cours — ${hotel.name}</h3>
+      ${hotel.activeCampaigns.length===0?`<div class="empty-state">Aucune campagne active pour l'instant.</div>`:
+        hotel.activeCampaigns.map(c=>`
+          <div class="loan-row">
+            <span>${c.icon} ${c.label}</span>
+            <span>+${Math.round(c.demandBonus*100)}% demande · ${c.daysLeft} jour${c.daysLeft>1?"s":""} restant${c.daysLeft>1?"s":""}</span>
+          </div>
+        `).join("")}
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Publicité sur les réseaux sociaux<span class="sub">Effet garanti, sans risque</span></h3>
+      <div class="grid g4">
+        ${Object.entries(MARKETING_CAMPAIGNS).map(([key,info])=>`
+          <div class="amenity-card">
+            <h4>${info.icon} ${info.label}</h4>
+            <div style="font-size:11.5px;margin:6px 0;color:var(--ink-soft);">
+              ${info.desc}<br>
+              +${Math.round(info.demandBonus*100)}% demande pendant ${info.duration} jours${info.repBonusPerDay>0?`<br>+${info.repBonusPerDay}/j réputation`:""}
+            </div>
+            <button class="btn gold small" ${state.cash<info.cost?"disabled":""} onclick="startCampaign('${hotel.id}','${key}')">Lancer — ${fmtMoney(info.cost)}</button>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Partenariats influenceurs<span class="sub">Fort impact, mais risqué si l'hôtel n'est pas prêt</span></h3>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">
+        Un influenceur non convaincu par son séjour peut publier un avis mitigé et faire baisser votre réputation au lieu de la faire grimper. Une bonne réputation de départ et l'absence de chambres en panne maximisent vos chances de succès.
+        ${brokenCount>0?`<br><span style="color:var(--danger);font-weight:600;">⚠️ ${brokenCount} chambre(s) en panne : le risque d'échec est accru.</span>`:""}
+      </div>
+      <div class="grid g3">
+        ${INFLUENCERS.map(inf=>{
+          const ready = hotel.reputation >= inf.riskThreshold && brokenCount===0;
+          return `<div class="amenity-card ${ready?"active":""}">
+            <h4>${inf.name}</h4>
+            <div class="lvl">${inf.tier} · ${inf.followers}</div>
+            <div style="font-size:11.5px;margin:6px 0;color:var(--ink-soft);">
+              +${Math.round(inf.demandBonus*100)}% demande, +${inf.repBonusPerDay}/j réputation<br>
+              Durée : ${inf.duration} jours<br>
+              Réputation conseillée : ${inf.riskThreshold}+${ready?` <span class="badge ok">Prêt</span>`:` <span class="badge warn">Risqué</span>`}
+            </div>
+            <button class="btn gold small" ${state.cash<inf.cost?"disabled":""} onclick="bookInfluencer('${hotel.id}','${inf.id}')">Inviter — ${fmtMoney(inf.cost)}</button>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderCalendar(){
+  const hotel = activeHotel();
+  ensureCityEvents(hotel.cityId);
+  const city = cityOf(hotel);
+
+  // 21 derniers jours d'historique + aujourd'hui + 14 jours à venir
+  const pastDays = 20;
+  const futureDays = 14;
+  const cells = [];
+  for(let d = state.day - pastDays; d <= state.day + futureDays; d++){
+    if(d<1) continue;
+    const isPast = d < state.day;
+    const isToday = d === state.day;
+    const hist = hotel.occupancyHistory.find(h=>h.day===d);
+    const evts = (state.cityEvents[hotel.cityId]||[]).filter(e=> d>=e.startDay && d<=e.endDay);
+    cells.push({ day:d, isPast, isToday, occRate: hist?hist.occRate:null, evts });
+  }
+
+  const occColor = (rate)=>{
+    if(rate===null) return "";
+    if(rate>=80) return "background:var(--ok-light);";
+    if(rate>=50) return "background:var(--warn-light);";
+    return "background:var(--danger-light);";
+  };
+
+  const upcoming = upcomingCityEvents(hotel.cityId, 45).sort((a,b)=>a.startDay-b.startDay);
+
+  document.getElementById("view-calendar").innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Calendrier — ${hotel.name}<span class="sub">${city.city}, ${city.country}</span></h3>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">
+        Occupation des ${pastDays} derniers jours et événements connus pour les ${futureDays} prochains jours. Le jour ${state.day} (aujourd'hui) est encadré.
+      </div>
+      <div id="calendar-grid">
+        ${cells.map(c=>`
+          <div class="cal-cell ${c.isToday?"today":""} ${!c.isPast?"future":""}" style="${c.isPast?occColor(c.occRate):""}">
+            <div class="d">J${c.day}</div>
+            ${c.isPast ? `<div class="occ">${c.occRate!==null?c.occRate+"%":"—"}</div>` : `<div class="evt">${c.evts.length? c.evts.map(e=>e.icon).join(""):""}</div>`}
+          </div>
+        `).join("")}
+      </div>
+      <div class="cal-legend">
+        <span><span class="sw" style="background:var(--ok-light);"></span>Occupation forte (80%+)</span>
+        <span><span class="sw" style="background:var(--warn-light);"></span>Occupation moyenne</span>
+        <span><span class="sw" style="background:var(--danger-light);"></span>Occupation faible</span>
+        <span><span class="sw" style="background:#fff;border:1px solid var(--line);"></span>Jours à venir (événements)</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Événements à venir à ${city.city}</h3>
+      ${upcoming.length===0?`<div class="empty-state">Aucun événement connu pour le moment.</div>`:
+        upcoming.map(e=>{
+          const active = state.day>=e.startDay && state.day<=e.endDay;
+          const daysUntil = e.startDay - state.day;
+          return `<div class="loan-row">
+            <span>${e.icon} ${e.label}</span>
+            <span>${active?`<span class="badge ok">En cours</span>`:daysUntil>0?`Dans ${daysUntil} jour${daysUntil>1?"s":""}`:""} · +${Math.round(e.demandBonus*100)}% demande</span>
+          </div>`;
+        }).join("")}
+    </div>
+  `;
+}
+
+function renderMessages(){
+  const hotel = activeHotel();
+  if(!hotel.messages) hotel.messages = [];
+  const nouveaux = hotel.messages.filter(m=>m.status==="nouveau");
+  const traites = hotel.messages.filter(m=>m.status==="traite");
+
+  const msgHtml = m=>{
+    const info = MESSAGE_TYPES[m.type];
+    return `<div class="msg-item ${m.status}">
+      <div class="head"><span>${info.icon} ${m.subject}</span><span style="font-weight:500;color:var(--ink-faint);font-size:11px;">J${m.day}</span></div>
+      <div class="meta">${info.label} · ${m.guestName}${m.roomNumber?` · Chambre ${m.roomNumber}`:""}</div>
+      ${m.status==="nouveau"?`<button class="btn small gold" onclick="resolveMessage('${hotel.id}','${m.id}')">Traiter</button>`:`<span class="badge ok">Traité</span>`}
+    </div>`;
+  };
+
+  document.getElementById("view-messages").innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Messagerie — ${hotel.name}<span class="sub">${nouveaux.length} en attente</span></h3>
+      <div style="font-size:12px;color:var(--ink-soft);">
+        Demandes spéciales, réclamations et objets perdus signalés par vos clients. Une réclamation laissée sans réponse plus de 3 jours nuit à votre réputation — traitez-les rapidement.
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Boîte de réception<span class="sub">${nouveaux.length} nouveau${nouveaux.length>1?"x":""}</span></h3>
+      ${nouveaux.length===0?`<div class="empty-state">Aucun message en attente. Tout est sous contrôle.</div>`: nouveaux.map(msgHtml).join("")}
+    </div>
+    <div class="card">
+      <h3>Historique traité<span class="sub">${traites.length} message${traites.length>1?"s":""}</span></h3>
+      ${traites.length===0?`<div class="empty-state">Aucun message traité pour l'instant.</div>`: traites.slice(0,15).map(msgHtml).join("")}
+    </div>
+  `;
+}
+
+function sparklineSvg(data, w, h){
+  if(data.length<2) return `<div class="empty-state">Historique insuffisant.</div>`;
+  const vals = data.map(d=>d.cash);
+  const min = Math.min(...vals, 0), max = Math.max(...vals, 1);
+  const range = (max-min)||1;
+  const pts = data.map((d,i)=>{
+    const x = (i/(data.length-1))*w;
+    const y = h - ((d.cash-min)/range)*h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const zeroY = h - ((0-min)/range)*h;
+  const last = vals[vals.length-1];
+  const color = last>=0 ? "var(--ok)" : "var(--danger)";
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">
+    <line x1="0" y1="${zeroY}" x2="${w}" y2="${zeroY}" stroke="var(--line)" stroke-dasharray="3,3"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>
+  </svg>`;
+}
+
+function renderFinance(){
+  const hotel = activeHotel();
+  const globalSalaries = state.hotels.reduce((s,h)=>s+h.staff.reduce((a,st)=>a+STAFF_ROLES[st.role].salary,0),0);
+  const globalUpkeep = state.hotels.reduce((s,h)=>s+Object.keys(h.amenities).reduce((a,k)=>{ const lvl=h.amenities[k]; return a+(lvl?AMENITIES[k].upkeep*AMENITY_UPKEEP_MULT[lvl]:0); },0),0);
+  const globalLoanPayments = state.loans.reduce((s,l)=>s+l.dailyPayment,0);
+  document.getElementById("view-finance").innerHTML = `
+    <div class="grid g2">
+      <div class="card">
+        <h3>Vue d'ensemble du groupe</h3>
+        <div class="kpi"><span>Trésorerie</span><b>${fmtMoney(state.cash)}</b></div>
+        <div class="kpi"><span>Masse salariale/jour (tous hôtels)</span><b class="neg">-${fmtMoney(globalSalaries)}</b></div>
+        <div class="kpi"><span>Entretien équipements/jour</span><b class="neg">-${fmtMoney(globalUpkeep)}</b></div>
+        <div class="kpi"><span>Remboursements emprunts/jour</span><b class="neg">-${fmtMoney(globalLoanPayments)}</b></div>
+        <div class="kpi"><span>Nombre d'hôtels</span><b>${state.hotels.length}</b></div>
+      </div>
+      <div class="card">
+        <h3>Historique de trésorerie</h3>
+        <div id="sparkline-wrap">${sparklineSvg(state.cashHistory, 400, 90)}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>Comparatif des hôtels</h3>
+      <table class="list">
+        <tr><th>Hôtel</th><th>Ville</th><th>Étoiles</th><th>Chambres</th><th>Occupation</th><th>Réputation</th><th>Avis moyen</th></tr>
+        ${state.hotels.map(h=>{
+          const occ = h.rooms.filter(r=>r.status==="occupied").length;
+          const occRate = h.rooms.length? Math.round(occ/h.rooms.length*100):0;
+          const avgReview = h.reviews.length? (h.reviews.slice(0,10).reduce((a,r)=>a+r.overall,0)/Math.min(10,h.reviews.length)).toFixed(1) : "—";
+          return `<tr>
+            <td>${h.name}</td><td>${cityOf(h).city}</td><td>${"★".repeat(computeStars(h))}</td>
+            <td>${h.rooms.length}</td><td>${occRate}%</td><td>${Math.round(h.reputation)}</td><td>${avgReview}${avgReview!=="—"?"/5":""}</td>
+          </tr>`;
+        }).join("")}
+      </table>
+    </div>
+    <div class="grid g2" style="margin-top:14px;">
+      <div class="card">
+        <h3>Emprunts bancaires</h3>
+        ${state.loans.length===0?`<div class="empty-state">Aucun emprunt en cours.</div>`:
+          state.loans.map(l=>`<div class="loan-row"><span>${fmtMoney(l.amount)} emprunté</span><span>${fmtMoney(l.dailyPayment)}/j · ${l.daysLeft}j restants</span></div>`).join("")}
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+          <button class="btn small ghost" onclick="takeLoan(10000)">Emprunter 10 000 €</button>
+          <button class="btn small ghost" onclick="takeLoan(25000)">Emprunter 25 000 €</button>
+          <button class="btn small ghost" onclick="takeLoan(50000)">Emprunter 50 000 €</button>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink-faint);">Remboursement automatique sur 25 jours, coût total +18%.</div>
+      </div>
+      <div class="card">
+        <h3>Journal complet</h3>
+        <div id="log">${state.log.map(l=>`<div><span class="d">J${l.day}</span>${l.msg}</div>`).join("")}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderWorld(){
+  document.getElementById("view-world").innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Expansion internationale</h3>
+      <div style="font-size:12.5px;color:var(--ink-soft);">Achetez un nouvel établissement dans une autre ville pour agrandir votre empire. Pensez à recruter un manager sur place pour éviter la négligence.</div>
+    </div>
+    <div id="world-grid">
+      ${CITIES.map(c=>{
+        const owned = state.hotels.some(h=>h.cityId===c.id);
+        return `<div class="city-card">
+          <div class="hero"><div class="country">${c.country}</div><h4>${c.city}</h4></div>
+          <div class="body">
+            <div class="kpi"><span>Demande touristique</span><b>${Math.round(c.demand*100)}%</b></div>
+            <div class="kpi"><span>Coût d'acquisition</span><b>${c.cost===0?"—":fmtMoney(c.cost)}</b></div>
+          </div>
+          ${owned?`<div class="owned">DÉJÀ PRÉSENT ICI</div>` : `<div style="padding:10px;"><button class="btn gold small" style="width:100%;" ${state.cash<c.cost?"disabled":""} onclick="buyHotelInCity('${c.id}')">Racheter un hôtel</button></div>`}
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderRanking(){
+  const citiesWithPresence = CITIES.filter(c=> state.hotels.some(h=>h.cityId===c.id) || (state.competitors[c.id]||[]).length);
+  document.getElementById("view-ranking").innerHTML = `
+    <div class="card" style="margin-bottom:14px;">
+      <h3>Classement concurrentiel</h3>
+      <div style="font-size:12.5px;color:var(--ink-soft);">Chaque ville compte des établissements concurrents dont la réputation évolue chaque jour. Comparez votre position face à eux.</div>
+    </div>
+    <div class="grid g2">
+      ${citiesWithPresence.map(c=>{
+        const competitors = (state.competitors[c.id]||[]).map(co=>({ name:co.name, reputation:co.reputation, mine:false }));
+        const mine = state.hotels.filter(h=>h.cityId===c.id).map(h=>({ name:h.name, reputation:h.reputation, mine:true, stars: computeStars(h) }));
+        const all = [...competitors, ...mine].sort((a,b)=>b.reputation-a.reputation);
+        const myRankText = mine.length ? mine.map(m=>{
+          const rank = all.findIndex(x=>x.mine && x.name===m.name)+1;
+          return `#${rank} sur ${all.length}`;
+        }).join(" · ") : "";
+        return `<div class="card">
+          <h3>${c.city}, ${c.country}${myRankText?`<span class="sub">${myRankText}</span>`:""}</h3>
+          <table class="list">
+            <tr><th>Rang</th><th>Établissement</th><th>Réputation</th></tr>
+            ${all.map((h,i)=>`
+              <tr style="${h.mine?"background:var(--primary-light);":""}">
+                <td>#${i+1}</td>
+                <td>${h.name}${h.mine?` <span class="badge ok">Vous</span>`:""}</td>
+                <td>${Math.round(h.reputation)}</td>
+              </tr>
+            `).join("")}
+          </table>
+        </div>`;
+      }).join("")}
+    </div>
+    ${citiesWithPresence.length===0?`<div class="empty-state">Aucune donnée de classement disponible.</div>`:""}
+  `;
+}
+
+/* ============================================================
+   MODALE OBJECTIFS
+   ============================================================ */
+function openMissionsModal(){
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `<div class="modal-bg" onclick="if(event.target===this) closeModal()">
+    <div class="modal">
+      <h3>🎯 Objectifs</h3>
+      ${MISSIONS.map(m=>{
+        const done = state.missionsCompleted.includes(m.id);
+        return `<div class="mission-row">
+          <div class="check ${done?"done":"pending"}">${done?"✓":"…"}</div>
+          <span>${m.label}</span>
+          <span class="reward">${done?"Atteint":`+${fmtMoney(m.reward)}`}</span>
+        </div>`;
+      }).join("")}
+      <div class="row"><button class="btn ghost" onclick="closeModal()">Fermer</button></div>
+    </div>
+  </div>`;
+}
+function closeModal(){ document.getElementById("modal-root").innerHTML = ""; }
+
+/* ============================================================
+   TUTORIEL D'ACCUEIL
+   ============================================================ */
+const TUTORIAL_STEPS = [
+  { icon:"🏨", title:"Bienvenue à la tête de votre hôtel", text:"Vous venez de racheter votre premier établissement, l'Auberge du Vieux Pont à Strasbourg, avec 25 000 € en caisse. Votre objectif : le faire prospérer, puis bâtir un véritable empire hôtelier dans plusieurs villes et pays. Si vous ouvrez ce fichier directement dans votre navigateur, votre partie se sauvegarde automatiquement — vous pouvez fermer l'onglet et reprendre plus tard." },
+  { icon:"🚪", title:"Vos chambres, jour après jour", text:"Chaque chambre a un statut : Prête, Occupée, À nettoyer, En panne, En rénovation ou En construction. Cliquez sur « Jour suivant » pour faire avancer le temps. Depuis l'onglet Chambres, vous pouvez aussi construire de nouvelles chambres pour agrandir votre hôtel." },
+  { icon:"🧑‍💼", title:"Votre personnel", text:"Recrutez femmes/valets de chambre, réceptionnistes, techniciens, managers et directeurs depuis l'onglet Personnel. Chacun a un rôle précis, gagne de l'expérience avec le temps et peut se démoraliser si l'hôtel est mal tenu — surveillez leur moral et versez une prime si besoin." },
+  { icon:"🛠️", title:"Rénover et équiper", text:"Dans « Rénovations & équipements », améliorez la qualité de vos chambres (elles se louent alors plus cher et plus souvent), construisez piscine, salle de sport, restaurant ou spa, et choisissez vos contrats fournisseurs (linge, petit-déjeuner)." },
+  { icon:"📣", title:"Marketing & influenceurs", text:"L'onglet Marketing permet de lancer des campagnes publicitaires (Instagram, TikTok, Google Ads...) pour booster la demande sans risque, ou d'inviter des influenceurs pour un effet plus fort. Attention : un influenceur déçu par un hôtel pas encore prêt peut nuire à votre réputation au lieu de l'améliorer." },
+  { icon:"💶", title:"Vos finances", text:"Suivez trésorerie, salaires et entretien dans l'onglet Finances. Besoin de liquidités pour investir plus vite ? Vous pouvez souscrire un emprunt, remboursé automatiquement chaque jour." },
+  { icon:"🌍", title:"Développez votre empire", text:"Une fois votre premier hôtel stabilisé, direction la Carte du monde pour racheter un établissement dans une autre ville. Suivez votre progression via les Objectifs et comparez-vous à la concurrence dans le Classement." },
+];
+let tutorialStep = 0;
+function openTutorial(){ tutorialStep = 0; renderTutorial(); }
+function tutorialNext(){ if(tutorialStep < TUTORIAL_STEPS.length-1){ tutorialStep++; renderTutorial(); } else { closeTutorial(); } }
+function tutorialPrev(){ if(tutorialStep>0){ tutorialStep--; renderTutorial(); } }
+function closeTutorial(){ state.tutorialSeen = true; document.getElementById("modal-root").innerHTML = ""; }
+function renderTutorial(){
+  const s = TUTORIAL_STEPS[tutorialStep];
+  const isLast = tutorialStep === TUTORIAL_STEPS.length-1;
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `<div class="modal-bg">
+    <div class="modal" style="text-align:center;">
+      <div style="font-size:38px;margin-bottom:6px;">${s.icon}</div>
+      <h3 style="margin-bottom:10px;">${s.title}</h3>
+      <div style="font-size:13px;color:var(--ink-soft);text-align:left;line-height:1.6;">${s.text}</div>
+      <div style="display:flex;justify-content:center;gap:5px;margin:16px 0 4px;">
+        ${TUTORIAL_STEPS.map((_,i)=>`<div style="width:7px;height:7px;border-radius:50%;background:${i===tutorialStep?"var(--primary)":"var(--line)"};"></div>`).join("")}
+      </div>
+      <div class="row" style="justify-content:space-between;">
+        <button class="btn ghost small" onclick="closeTutorial()">Passer</button>
+        <div style="display:flex;gap:8px;">
+          ${tutorialStep>0?`<button class="btn ghost small" onclick="tutorialPrev()">← Précédent</button>`:""}
+          <button class="btn gold small" onclick="tutorialNext()">${isLast?"C'est parti !":"Suivant →"}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   DÉMARRAGE
+   ============================================================ */
+if(loadAutoSaveFromStorage()){
+  addLog("Partie reprise automatiquement depuis la sauvegarde du navigateur.");
+  render();
+} else {
+  initGame();
+}
+if(!state.tutorialSeen){ openTutorial(); }
+</script>
+</body>
+</html>
